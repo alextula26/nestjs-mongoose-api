@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
 /*import { BlogModule } from './blog/blog.module';
 import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
@@ -29,9 +30,6 @@ import { BlogQueryRepository } from './blog/blog.query.repository';
 import { PostQueryRepository } from './post/post.query.repository';
 import { CommentQueryRepository } from './comment/comment.query.repository';
 
-const mongoUri = process.env.MONGO_ATLAS_URI || 'mongodb://127.0.0.1/bloggers';
-console.log('mongoUri', mongoUri);
-
 @Module({
   /*imports: [
     MongooseModule.forRoot(
@@ -46,8 +44,9 @@ console.log('mongoUri', mongoUri);
   providers: [AppService],*/
 
   imports: [
+    ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      'mongodb+srv://alextula86:marchuk2008@cluster0.mms9f2q.mongodb.net/bloggers-dev?retryWrites=true&w=majority',
+      process.env.MONGO_ATLAS_URI || 'mongodb://127.0.0.1/bloggers',
     ),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
