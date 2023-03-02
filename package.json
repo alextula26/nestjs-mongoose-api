@@ -1,8 +1,8 @@
 {
   "name": "nestjs-mongoose-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "nestjs api",
+  "author": "alextula86",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -31,7 +31,8 @@
     "lodash": "^4.17.21",
     "mongoose": "^6.10.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.2.0"
+    "rxjs": "^7.2.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -45,6 +46,7 @@
     "@types/lodash": "^4.14.191",
     "@types/node": "18.11.18",
     "@types/supertest": "^2.0.11",
+    "@types/uuid": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",
