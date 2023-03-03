@@ -11,7 +11,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ResponseViewModelDetail } from 'src/types';
+import { ResponseViewModelDetail } from '../types';
 import { PostQueryRepository } from './post.query.repository';
 import { PostService } from './post.service';
 import {

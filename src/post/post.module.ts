@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { BlogModule } from 'src/blog/blog.module';
+import { BlogModule } from '../blog/blog.module';
 import { PostController } from './post.controller';
 import { PostQueryRepository } from './post.query.repository';
 import { PostRepository } from './post.repository';

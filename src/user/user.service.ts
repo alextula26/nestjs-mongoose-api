@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { CreateUserModel } from './types';
-import { bcryptService } from 'src/application';
+import { bcryptService } from '../application';
 
 @Injectable()
 export class UserService {

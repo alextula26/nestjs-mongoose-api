@@ -1,4 +1,4 @@
-import { UserDocument, UserModelType } from 'src/user/schemas';
+import { UserDocument, UserModelType } from '../../../user/schemas';
 import { CreateUserDto } from './CreateUserDto';
 
 export type UserStaticsType = {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ResponseViewModelDetail, SortDirection } from 'src/types';
+import { ResponseViewModelDetail, SortDirection } from '../types';
 import { Blog, BlogDocument, BlogModelType } from './schemas';
 import { QueryBlogModel, BlogViewModel } from './types';
 
@@ -59,6 +59,7 @@ export class BlogQueryRepository {
       name: blogDocument.name,
       description: blogDocument.description,
       websiteUrl: blogDocument.websiteUrl,
+      isMembership: blogDocument.isMembership,
       createdAt: blogDocument.createdAt,
     };
   }
@@ -79,6 +80,7 @@ export class BlogQueryRepository {
         name: item.name,
         description: item.description,
         websiteUrl: item.websiteUrl,
+        isMembership: item.isMembership,
         createdAt: item.createdAt,
       })),
     };

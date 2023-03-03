@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isEmpty } from 'lodash';
-import { ResponseViewModelDetail, SortDirection } from 'src/types';
+import { ResponseViewModelDetail, SortDirection } from '../types';
 import { User, UserDocument, UserModelType } from './schemas';
 import { QueryUserModel, UserViewModel } from './types';
 
@@ -21,7 +21,7 @@ export class UserQueryRepository {
 
     const query: any = [];
     const sort: any = {
-      [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
+      [`accountData.${sortBy}`]: sortDirection === SortDirection.ASC ? 1 : -1,
     };
 
     if (searchLoginTerm) {

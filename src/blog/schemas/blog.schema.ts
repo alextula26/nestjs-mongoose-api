@@ -40,6 +40,12 @@ export class Blog {
   websiteUrl: string;
 
   @Prop({
+    type: Boolean,
+    required: [true, 'The isMembership field is required'],
+  })
+  isMembership: boolean;
+
+  @Prop({
     type: String,
     required: [true, 'The createdAt field is required'],
     trim: true,

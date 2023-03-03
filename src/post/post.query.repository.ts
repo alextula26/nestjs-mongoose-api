@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  LikeStatuses,
-  ResponseViewModelDetail,
-  SortDirection,
-} from 'src/types';
+import { LikeStatuses, ResponseViewModelDetail, SortDirection } from '../types';
 import { Post, PostDocument, PostModelType } from './schemas';
 import { QueryPostModel, PostViewModel } from './types';
 

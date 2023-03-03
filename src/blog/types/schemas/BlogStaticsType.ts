@@ -1,4 +1,4 @@
-import { BlogDocument, BlogModelType } from 'src/blog/schemas';
+import { BlogDocument, BlogModelType } from '../../schemas';
 import { CreateBlogDto } from './CreateBlogDto';
 
 export type BlogStaticsType = {

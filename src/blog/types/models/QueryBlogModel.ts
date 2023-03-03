@@ -1,4 +1,4 @@
-import { SortDirection } from 'src/types';
+import { SortDirection } from '../../../types';
 
 export type QueryBlogModel = {
   searchNameTerm: string;

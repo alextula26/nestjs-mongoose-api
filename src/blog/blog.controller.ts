@@ -21,12 +21,12 @@ import { BlogService } from './blog.service';
 import { PostService } from '../post/post.service';
 import { BlogQueryRepository } from './blog.query.repository';
 import { PostQueryRepository } from '../post/post.query.repository';
-import { ResponseViewModelDetail } from 'src/types';
+import { ResponseViewModelDetail } from '../types';
 import {
   CreatePostForBlogModel,
   PostViewModel,
   QueryPostModel,
-} from 'src/post/types';
+} from '../post/types';
 
 @Controller('api/blogs')
 export class BlogController {

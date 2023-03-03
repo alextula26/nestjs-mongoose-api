@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
-import { BlogRepository } from 'src/blog/blog.repository';
+import { BlogRepository } from '../blog/blog.repository';
 import { PostRepository } from './post.repository';
 import { CreatePostModel, UpdatePostModel } from './types';
 
@@ -27,7 +27,7 @@ export class PostService {
     if (isEmpty(foundBlog)) {
       return {
         postId: null,
-        statusCode: HttpStatus.BAD_REQUEST,
+        statusCode: HttpStatus.NOT_FOUND,
         statusMessage: `Blog with id ${blogId} was not found`,
       };
     }
@@ -36,8 +36,8 @@ export class PostService {
       title,
       shortDescription,
       content,
-      blogId: 'foundBlog.id',
-      blogName: 'foundBlog.name',
+      blogId: foundBlog.id,
+      blogName: foundBlog.name,
     });
     // Сохраняем пост в базе
     const createdPost = await this.postRepository.save(madePost);
@@ -89,8 +89,6 @@ export class PostService {
       title,
       shortDescription,
       content,
-      blogId: 'foundPost.id',
-      blogName: 'foundPost.title',
     });
     // Сохраняем пост в базу
     await this.postRepository.save(foundPost);

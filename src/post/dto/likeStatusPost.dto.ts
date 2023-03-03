@@ -1,4 +1,4 @@
-import { getNextStrId } from 'src/utils';
+import { getNextStrId } from '../../utils';
 import { LikeStatuses } from '../../types';
 
 export class LikeStatusPostDto {

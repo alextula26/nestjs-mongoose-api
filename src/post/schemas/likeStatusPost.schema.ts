@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { LikeStatuses } from 'src/types';
+import { LikeStatuses } from '../../types';
 
 @Schema()
 class LikeStatusPost extends Document {

@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { trim } from 'lodash';
 import { HydratedDocument, Model } from 'mongoose';
-import { generateUUID } from 'src/utils';
+import { generateUUID } from '../../utils';
 import { UserDto } from '../dto/user.dto';
 import {
   AccountDataType,

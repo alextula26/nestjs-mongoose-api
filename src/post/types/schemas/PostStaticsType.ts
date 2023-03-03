@@ -1,4 +1,4 @@
-import { PostDocument, PostModelType } from 'src/post/schemas';
+import { PostDocument, PostModelType } from '../../../post/schemas';
 import { CreatePostDto } from './CreatePostDto';
 
 export type PostStaticsType = {

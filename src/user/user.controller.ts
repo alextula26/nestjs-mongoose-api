@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { UserQueryRepository } from './user.query.repository';
 import { UserService } from './user.service';
-import { ResponseViewModelDetail } from 'src/types';
+import { ResponseViewModelDetail } from '../types';
 import { QueryUserModel, CreateUserModel, UserViewModel } from './types';
 
 @Controller('api/users')

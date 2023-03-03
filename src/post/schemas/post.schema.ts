@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { trim } from 'lodash';
 import { Document, HydratedDocument, Model } from 'mongoose';
-import { LikeStatuses } from 'src/types';
+import { LikeStatuses } from '../../types';
 import { PostDto, LikeStatusPostDto, NewestLikesDto } from '../dto';
 import { CreatePostDto, UpdatePostDto, PostStaticsType } from '../types';
 /*import {
@@ -193,18 +193,10 @@ export class Post extends Document {
     this.blogName = blogName;
   }
 
-  updateAllPost({
-    title,
-    shortDescription,
-    content,
-    blogId,
-    blogName,
-  }: UpdatePostDto) {
+  updateAllPost({ title, shortDescription, content }: UpdatePostDto) {
     this.setTitle(title);
     this.setShortDescription(shortDescription);
     this.setContent(content);
-    this.setBlogId(blogId);
-    this.setBlogName(blogName);
   }
 
   static make(
