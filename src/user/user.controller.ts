@@ -9,12 +9,16 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuardBasic } from '../auth.guard';
 import { UserQueryRepository } from './user.query.repository';
 import { UserService } from './user.service';
 import { ResponseViewModelDetail } from '../types';
-import { QueryUserModel, CreateUserModel, UserViewModel } from './types';
+import { QueryUserModel, UserViewModel } from './types';
+import { CreateUserDto } from './dto/user.dto';
 
+@UseGuards(AuthGuardBasic)
 @Controller('api/users')
 export class UserController {
   constructor(
@@ -37,11 +41,11 @@ export class UserController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createUser(
-    @Body() { login, password, email }: CreateUserModel,
+    @Body() createUserDto: CreateUserDto,
   ): Promise<UserViewModel> {
     // Создаем пользователя
     const { userId, statusCode, statusMessage } =
-      await this.userService.createUser({ login, password, email });
+      await this.userService.createUser(createUserDto);
     // Если при создании пользователя возникли ошибки возращаем статус ошибки
     if (statusCode !== HttpStatus.CREATED) {
       throw new HttpException(statusMessage, statusCode);

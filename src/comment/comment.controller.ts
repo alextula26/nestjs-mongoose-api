@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common';
 import { CommentQueryRepository } from './comment.query.repository';
 import { CommentService } from './comment.service';
-import { CommentViewModel, UpdateCommentModel } from './types';
+import { UpdateCommentDto } from './dto';
+import { CommentViewModel } from './types';
 
 @Controller('api/comments')
 export class CommentController {
@@ -40,11 +41,11 @@ export class CommentController {
   @Put(':commentId')
   async updateComment(
     @Param('commentId') commentId: string,
-    @Body() { content }: UpdateCommentModel,
+    @Body() updateCommentDto: UpdateCommentDto,
   ): Promise<boolean> {
     // Обновляем комментарий
     const { statusCode, statusMessage } =
-      await this.commentService.updateComment(commentId, { content });
+      await this.commentService.updateComment(commentId, updateCommentDto);
 
     // Если при обновлении комментария возникли ошибки возращаем статус ошибки
     if (statusCode !== HttpStatus.NO_CONTENT) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogDocument, BlogModelType } from './schemas';
-import { CreateBlogDto } from './types';
+import { MakeBlogModel } from './types';
 
 @Injectable()
 export class BlogRepository {
@@ -25,7 +25,7 @@ export class BlogRepository {
     name,
     description,
     websiteUrl,
-  }: CreateBlogDto): Promise<BlogDocument> {
+  }: MakeBlogModel): Promise<BlogDocument> {
     const madeBlog = this.BlogModel.make(
       { name, description, websiteUrl },
       this.BlogModel,

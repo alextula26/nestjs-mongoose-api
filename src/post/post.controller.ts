@@ -10,16 +10,14 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuardBasic } from '../auth.guard';
 import { ResponseViewModelDetail } from '../types';
 import { PostQueryRepository } from './post.query.repository';
 import { PostService } from './post.service';
-import {
-  CreatePostModel,
-  PostViewModel,
-  QueryPostModel,
-  UpdatePostModel,
-} from './types';
+import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
+import { PostViewModel, QueryPostModel } from './types';
 
 @Controller('api/posts')
 export class PostController {
@@ -74,19 +72,14 @@ export class PostController {
   }
   // Создание поста
   @Post()
+  @UseGuards(AuthGuardBasic)
   @HttpCode(HttpStatus.CREATED)
   async createPost(
-    @Body()
-    { title, shortDescription, content, blogId }: CreatePostModel,
+    @Body() createPostDto: CreatePostDto,
   ): Promise<PostViewModel> {
     // Создаем пост
     const { postId, statusCode, statusMessage } =
-      await this.postService.createPost({
-        title,
-        shortDescription,
-        content,
-        blogId,
-      });
+      await this.postService.createPost(createPostDto);
     // Если при создании поста возникли ошибки возращаем статус ошибки
     if (statusCode !== HttpStatus.CREATED) {
       throw new HttpException(statusMessage, statusCode);
@@ -98,21 +91,16 @@ export class PostController {
   }
   // Обновление поста
   @Put(':postId')
+  @UseGuards(AuthGuardBasic)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePost(
     @Param('postId') postId: string,
-    @Body()
-    { title, shortDescription, content, blogId }: UpdatePostModel,
+    @Body() updatePostDto: UpdatePostDto,
   ): Promise<boolean> {
     // Обновляем пост
     const { statusCode, statusMessage } = await this.postService.updatePost(
       postId,
-      {
-        title,
-        shortDescription,
-        content,
-        blogId,
-      },
+      updatePostDto,
     );
     // Если при обновлении поста возникли ошибки возращаем статус ошибки
     if (statusCode !== HttpStatus.NO_CONTENT) {
@@ -123,6 +111,7 @@ export class PostController {
   }
   // Удаление поста
   @Delete(':postId')
+  @UseGuards(AuthGuardBasic)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePostById(@Param('postId') postId: string): Promise<boolean> {
     // Удаляем пост

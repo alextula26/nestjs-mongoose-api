@@ -2,7 +2,8 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { BlogRepository } from './blog.repository';
 import { BlogDocument } from './schemas';
-import { CreateBlogModel, UpdateBlogModel } from './types';
+import { validateOrRejectModel } from '../validate';
+import { CreateBlogDto, UpdateBlogDto } from './dto/blog.dto';
 
 @Injectable()
 export class BlogService {
@@ -14,15 +15,14 @@ export class BlogService {
     return foundBlogById;
   }
   // Создание блогера
-  async createBlog({
-    name,
-    description,
-    websiteUrl,
-  }: CreateBlogModel): Promise<{
+  async createBlog(createBlogDto: CreateBlogDto): Promise<{
     blogId: string;
     statusCode: HttpStatus;
     statusMessage: string;
   }> {
+    await validateOrRejectModel(createBlogDto, CreateBlogDto);
+
+    const { name, description, websiteUrl } = createBlogDto;
     // Создаем документ блогера
     const madeBlog = await this.blogRepository.createBlog({
       name,
@@ -51,11 +51,14 @@ export class BlogService {
   // Обновление блогера
   async updateBlog(
     blogId: string,
-    { name, description, websiteUrl }: UpdateBlogModel,
+    updateBlogDto: UpdateBlogDto,
   ): Promise<{
     statusCode: HttpStatus;
     statusMessage: string;
   }> {
+    await validateOrRejectModel(updateBlogDto, UpdateBlogDto);
+
+    const { name, description, websiteUrl } = updateBlogDto;
     // Ищем блогера
     const foundBlog = await this.blogRepository.findBlogById(blogId);
     // Если блогер не найден, возвращаем ошибку

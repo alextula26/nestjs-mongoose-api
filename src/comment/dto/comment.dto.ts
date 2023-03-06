@@ -1,22 +1,18 @@
-import { getNextStrId } from '../../utils';
-import { LikeStatusCommentDto } from '.';
+import { IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-export class CommentDto {
-  id: string;
-  createdAt: string;
-  likesCount: number;
-  dislikesCount: number;
-  likes: LikeStatusCommentDto[];
-  constructor(
-    public content: string,
-    public postId: string,
-    public userId: string,
-    public userLogin: string,
-  ) {
-    this.id = getNextStrId();
-    this.likesCount = 0;
-    this.dislikesCount = 0;
-    this.likes = [];
-    this.createdAt = new Date().toISOString();
-  }
+export class CreateCommentDto {
+  @IsNotEmpty({
+    message: 'The content field is required',
+  })
+  @Transform(({ value }) => value.trim())
+  @MinLength(20, {
+    message: 'The content field must be at least 20, got $value',
+  })
+  @MaxLength(300, {
+    message: 'The content field must be no more than 300, got $value',
+  })
+  content: string;
 }
+
+export class UpdateCommentDto extends CreateCommentDto {}

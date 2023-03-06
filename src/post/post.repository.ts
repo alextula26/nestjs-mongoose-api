@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument, PostModelType } from './schemas';
-import { CreatePostDto } from './types';
+import { MakePostModel } from './types';
 
 @Injectable()
 export class PostRepository {
@@ -27,7 +27,7 @@ export class PostRepository {
     content,
     blogId,
     blogName,
-  }: CreatePostDto): Promise<PostDocument> {
+  }: MakePostModel): Promise<PostDocument> {
     const madePost = this.PostModel.make(
       { title, shortDescription, content, blogId, blogName },
       this.PostModel,

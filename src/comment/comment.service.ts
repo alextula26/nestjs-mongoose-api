@@ -1,8 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { CommentRepository } from './comment.repository';
+import { validateOrRejectModel } from '../validate';
 import { CommentDocument } from './schemas';
-import { UpdateCommentModel } from './types';
+import { UpdateCommentDto } from './dto';
 
 @Injectable()
 export class CommentService {
@@ -18,11 +19,14 @@ export class CommentService {
   // Обновить комментарий
   async updateComment(
     commentId: string,
-    { content }: UpdateCommentModel,
+    updateCommentDto: UpdateCommentDto,
   ): Promise<{
     statusCode: HttpStatus;
     statusMessage: string;
   }> {
+    await validateOrRejectModel(updateCommentDto, UpdateCommentDto);
+
+    const { content } = updateCommentDto;
     // Ищем комментарий
     const foundComment = await this.commentRepository.findCommentById(
       commentId,

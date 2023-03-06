@@ -2,7 +2,12 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
 import { BlogRepository } from '../blog/blog.repository';
 import { PostRepository } from './post.repository';
-import { CreatePostModel, UpdatePostModel } from './types';
+import { validateOrRejectModel } from '../validate';
+import {
+  CreatePostBaseDto,
+  CreatePostDto,
+  UpdatePostDto,
+} from './dto/post.dto';
 
 @Injectable()
 export class PostService {
@@ -11,16 +16,14 @@ export class PostService {
     private readonly blogRepository: BlogRepository,
   ) {}
   // Создание поста
-  async createPost({
-    title,
-    shortDescription,
-    content,
-    blogId,
-  }: CreatePostModel): Promise<{
+  async createPost(createPostDto: CreatePostDto): Promise<{
     postId: string;
     statusCode: HttpStatus;
     statusMessage: string;
   }> {
+    await validateOrRejectModel(createPostDto, CreatePostDto);
+
+    const { title, shortDescription, content, blogId } = createPostDto;
     // Ищем блогера, к которому прикреплен пост
     const foundBlog = await this.blogRepository.findBlogById(blogId);
     // Если блогер не найден, возвращаем ошибку
@@ -61,11 +64,14 @@ export class PostService {
   // Обновление поста
   async updatePost(
     postId: string,
-    { title, shortDescription, content, blogId }: UpdatePostModel,
+    updatePostDto: UpdatePostDto,
   ): Promise<{
     statusCode: HttpStatus;
     statusMessage: string;
   }> {
+    await validateOrRejectModel(updatePostDto, UpdatePostDto);
+
+    const { title, shortDescription, content, blogId } = updatePostDto;
     // Ищем блогера, к которому прикреплен пост
     const foundBlog = await this.blogRepository.findBlogById(blogId);
     // Если блогер не найден, возвращаем ошибку
@@ -103,5 +109,55 @@ export class PostService {
     const isDeletePostById = await this.postRepository.deletePostById(postId);
 
     return isDeletePostById;
+  }
+  // Создание поста по идентификатору блогера
+  async createPostsByBlogId(
+    blogId: string,
+    createPostBaseDto: CreatePostBaseDto,
+  ): Promise<{
+    postId: string;
+    statusCode: HttpStatus;
+    statusMessage: string;
+  }> {
+    await validateOrRejectModel(createPostBaseDto, CreatePostBaseDto);
+
+    const { title, shortDescription, content } = createPostBaseDto;
+    // Ищем блогера, к которому прикреплен пост
+    const foundBlog = await this.blogRepository.findBlogById(blogId);
+    // Если блогер не найден, возвращаем ошибку
+    if (isEmpty(foundBlog)) {
+      return {
+        postId: null,
+        statusCode: HttpStatus.NOT_FOUND,
+        statusMessage: `Blog with id ${blogId} was not found`,
+      };
+    }
+    // Создаем документ поста
+    const madePost = await this.postRepository.createPost({
+      title,
+      shortDescription,
+      content,
+      blogId: foundBlog.id,
+      blogName: foundBlog.name,
+    });
+    console.log('madePost', madePost);
+    // Сохраняем пост в базе
+    const createdPost = await this.postRepository.save(madePost);
+    // Ищем новый пост в базе
+    const foundPost = await this.postRepository.findPostById(createdPost.id);
+    // Если поста нет, т.е. он не сохранился, возвращаем ошибку
+    if (!foundPost) {
+      return {
+        postId: null,
+        statusCode: HttpStatus.BAD_REQUEST,
+        statusMessage: `Post creation error`,
+      };
+    }
+    // Возвращаем идентификатор созданного поста и статус CREATED
+    return {
+      postId: createdPost.id,
+      statusCode: HttpStatus.CREATED,
+      statusMessage: 'Post created',
+    };
   }
 }

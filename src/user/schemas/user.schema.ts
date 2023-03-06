@@ -2,18 +2,19 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { add } from 'date-fns';
 import { trim } from 'lodash';
 import { HydratedDocument, Model } from 'mongoose';
+import { AccountDataSchema } from './accountData.schema';
+import { EmailConfirmationSchema } from './emailConfirmation.schema';
+import { PasswordRecoverySchema } from './passwordRecovery.schema';
+import { UserEntity } from '../entity';
+import { bcryptService } from '../../application';
 import { generateUUID } from '../../utils';
-import { UserDto } from '../dto/user.dto';
 import {
   AccountDataType,
   EmailConfirmationType,
   PasswordRecoveryType,
-  CreateUserDto,
+  MakeUserModel,
   UserStaticsType,
 } from '../types';
-import { AccountDataSchema } from './accountData.schema';
-import { EmailConfirmationSchema } from './emailConfirmation.schema';
-import { PasswordRecoverySchema } from './passwordRecovery.schema';
 
 @Schema()
 export class User {
@@ -52,12 +53,19 @@ export class User {
     this.refreshToken = refreshToken;
   }
 
-  static make(
-    { login, passwordHash, email }: CreateUserDto,
+  static async make(
+    { login, password, email }: MakeUserModel,
     UserModel: UserModelType,
-  ): UserDocument {
+  ): Promise<UserDocument> {
     // Генерируем код для подтверждения email
     const confirmationCode = generateUUID();
+    // Генерируем соль
+    const passwordSalt = bcryptService.generateSaltSync(10);
+    // Генерируем хэш пароля
+    const passwordHash = await bcryptService.generateHash(
+      password,
+      passwordSalt,
+    );
 
     const accountData = {
       login: trim(String(login)),
@@ -80,7 +88,7 @@ export class User {
 
     const refreshToken = '';
 
-    const user = new UserDto(
+    const user = new UserEntity(
       accountData,
       emailConfirmation,
       passwordRecovery,

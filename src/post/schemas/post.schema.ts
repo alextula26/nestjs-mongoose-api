@@ -2,12 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { trim } from 'lodash';
 import { Document, HydratedDocument, Model } from 'mongoose';
 import { LikeStatuses } from '../../types';
-import { PostDto, LikeStatusPostDto, NewestLikesDto } from '../dto';
-import { CreatePostDto, UpdatePostDto, PostStaticsType } from '../types';
-/*import {
-  LikeStatusPostSchema,
-  NewestLikesSchema,
-} from '../schemas';*/
+import { PostEntity, LikeStatusPostEntity, NewestLikesEntity } from '../entity';
+import { PostStaticsType, MakePostModel, UpdatePostModel } from '../types';
 
 @Schema()
 export class LikeStatusPost {
@@ -163,23 +159,53 @@ export class Post extends Document {
   dislikesCount: number;
 
   @Prop({ type: [LikeStatusPostSchema], default: [] })
-  likes: LikeStatusPostDto[];
+  likes: LikeStatusPostEntity[];
 
   @Prop({ type: [NewestLikesSchema], default: [] })
-  newestLikes: NewestLikesDto[];
+  newestLikes: NewestLikesEntity[];
 
   setTitle(title: string) {
-    if (!trim(title)) throw new Error('Bad title value!');
+    if (!trim(title)) {
+      throw new Error('The title field is required');
+    }
+    if (trim(title).length < 3) {
+      throw new Error(`The title field must be at least 3, got ${title}`);
+    }
+    if (trim(title).length > 30) {
+      throw new Error(`The title field must be no more than 30, got ${title}`);
+    }
     this.title = title;
   }
 
   setShortDescription(shortDescription: string) {
-    if (!trim(shortDescription)) throw new Error('Bad shortDescription value!');
+    if (!trim(shortDescription)) {
+      throw new Error('The shortDescription field is required');
+    }
+    if (trim(shortDescription).length < 3) {
+      throw new Error(
+        `The shortDescription field must be at least 3, got ${shortDescription}`,
+      );
+    }
+    if (trim(shortDescription).length > 100) {
+      throw new Error(
+        `The shortDescription field must be no more than 100, got ${shortDescription}`,
+      );
+    }
     this.shortDescription = shortDescription;
   }
 
   setContent(content: string) {
-    if (!trim(content)) throw new Error('Bad content value!');
+    if (!trim(content)) {
+      throw new Error('The content field is required');
+    }
+    if (trim(content).length < 3) {
+      throw new Error(`The content field must be at least 3, got ${content}`);
+    }
+    if (trim(content).length > 1000) {
+      throw new Error(
+        `The content field must be no more than 1000, got ${content}`,
+      );
+    }
     this.content = content;
   }
 
@@ -193,20 +219,20 @@ export class Post extends Document {
     this.blogName = blogName;
   }
 
-  updateAllPost({ title, shortDescription, content }: UpdatePostDto) {
+  updateAllPost({ title, shortDescription, content }: UpdatePostModel) {
     this.setTitle(title);
     this.setShortDescription(shortDescription);
     this.setContent(content);
   }
 
   static make(
-    { title, shortDescription, content, blogId, blogName }: CreatePostDto,
+    { title, shortDescription, content, blogId, blogName }: MakePostModel,
     PostModel: PostModelType,
   ): PostDocument {
     const postTitle = trim(String(title));
     const postShortDescription = trim(String(shortDescription));
     const postContent = trim(String(content));
-    const post = new PostDto(
+    const post = new PostEntity(
       postTitle,
       postShortDescription,
       postContent,
