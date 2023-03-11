@@ -1,18 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { UserDocument } from './schemas';
 import { validateOrRejectModel } from '../validate';
 import { CreateUserDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
-  // Поиск документа конкретного пользователя по его идентификатору
-  async findUserById(userId: string): Promise<UserDocument | null> {
-    const foundBlogById = await this.userRepository.findUserById(userId);
-
-    return foundBlogById;
-  }
   async createUser(createUserDto: CreateUserDto): Promise<{
     userId: string;
     statusCode: HttpStatus;

@@ -209,16 +209,6 @@ export class Post extends Document {
     this.content = content;
   }
 
-  setBlogId(blogId: string) {
-    if (blogId) throw new Error('Bad blogId value!');
-    this.blogId = blogId;
-  }
-
-  setBlogName(blogName: string) {
-    if (blogName) throw new Error('Bad blogName value!');
-    this.blogName = blogName;
-  }
-
   updateAllPost({ title, shortDescription, content }: UpdatePostModel) {
     this.setTitle(title);
     this.setShortDescription(shortDescription);

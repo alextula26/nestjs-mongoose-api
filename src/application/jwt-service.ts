@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { settings } from '../settings';
 
 export const jwtService = {
@@ -25,18 +25,23 @@ export const jwtService = {
       return null;
     }
   },
-  async getRefreshTokenData(token: string) {
+  async getRefreshTokenUserIdAndDeviceId(token: string) {
     try {
-      const refreshTokenData: any = jwt.verify(
-        token,
-        settings.REFRESH_TOKEN_SECRET,
-      );
-
+      const result: any = jwt.verify(token, settings.REFRESH_TOKEN_SECRET);
       return {
-        userId: refreshTokenData.userId,
-        deviceId: refreshTokenData.deviceId,
-        expRefreshToken: refreshTokenData.exp * 1000,
+        userId: result.userId,
+        deviceId: result.deviceId,
       };
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  },
+  async getExpRefreshToken(token: string) {
+    try {
+      const result: any = jwt.verify(token, settings.REFRESH_TOKEN_SECRET);
+
+      return result.exp * 1000;
     } catch (error) {
       return null;
     }

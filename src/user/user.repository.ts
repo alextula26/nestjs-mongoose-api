@@ -45,4 +45,19 @@ export class UserRepository {
 
     return deletedCount === 1;
   }
+
+  async findByLoginOrEmail(loginOrEmail: string): Promise<UserDocument | null> {
+    const foundUser = await this.UserModel.findOne({
+      $or: [
+        { 'accountData.login': loginOrEmail },
+        { 'accountData.email': loginOrEmail },
+      ],
+    });
+
+    if (!foundUser) {
+      return null;
+    }
+
+    return foundUser;
+  }
 }
