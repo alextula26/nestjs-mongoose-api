@@ -15,7 +15,7 @@ export class DeviceService {
     await validateOrRejectModel(createDeviceDto, CreateDeviceDto);
 
     const { deviceId, ip, title, userId, lastActiveDate } = createDeviceDto;
-    // Создаем документ пользователя
+    // Создаем документ устройства
     const madeDevice = await this.deviceRepository.createDevice({
       deviceId,
       ip,
@@ -29,7 +29,7 @@ export class DeviceService {
     const foundDevice = await this.deviceRepository.findDeviceById(
       createdDevice.id,
     );
-    // Если устройства нет, т.е. он не сохранился, возвращаем ошибку
+    // Если устройства нет, т.е. он не сохранился в базе, возвращаем ошибку
     if (!foundDevice) {
       return {
         deviceId: null,

@@ -18,6 +18,7 @@ import { AuthService } from './auth.service';
 import { UserAuthViewModel } from './types';
 import {
   AuthUserDto,
+  ConfirmPasswordDto,
   RegistrationConfirmationDto,
   RegistrationEmailDto,
   RegistrationUserDto,
@@ -178,6 +179,21 @@ export class AuthController {
       await this.authService.passwordRecovery(registrationEmailDto);
     // Если код востановления пароля не сформирован или не сохранен для пользователя или письмо не отправлено,
     // возвращаем статус 400
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
+    }
+  }
+  // Подтверждение восстановление пароля
+  @Post('/new-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async newPassword(
+    @Body() confirmPasswordDto: ConfirmPasswordDto,
+  ): Promise<void> {
+    // Обновляем пароль пользователя
+    const { statusCode, statusMessage } = await this.authService.newPassword(
+      confirmPasswordDto,
+    );
+    // Если пароль не обновился возвращаем статус 400
     if (statusCode === HttpStatus.BAD_REQUEST) {
       throw new BadRequestException(statusMessage);
     }

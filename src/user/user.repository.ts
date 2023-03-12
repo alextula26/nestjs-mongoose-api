@@ -31,6 +31,17 @@ export class UserRepository {
 
     return foundUser;
   }
+  async findByRecoveryCode(recoveryCode: string) {
+    const foundUser = await this.UserModel.findOne({
+      'passwordRecovery.recoveryCode': recoveryCode,
+    });
+
+    if (!foundUser) {
+      return null;
+    }
+
+    return foundUser;
+  }
   // Создаем документ пользователя
   async createUser({
     login,

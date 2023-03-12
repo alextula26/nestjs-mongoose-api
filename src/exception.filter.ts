@@ -29,15 +29,12 @@ export class ErrorExceptionFilter implements ExceptionFilter {
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
-    console.log('HttpExceptionFilter');
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
-    console.log('status', status);
     if (status === HttpStatus.BAD_REQUEST) {
       const responseBody: any = exception.getResponse();
-      console.log('responseBody', responseBody);
       response.status(status).json({ errorsMessages: responseBody.message });
     } else {
       response.status(status).json({

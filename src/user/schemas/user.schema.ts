@@ -71,6 +71,24 @@ export class User {
     // Возвращаем true
     return true;
   }
+  // Проверяем можно ли востановить пароль
+  canBePasswordRecovery() {
+    // Если дата истечения срока действия меньше текущей
+    // Значит нельзя востановить пароль
+    // Возвращаем false
+    if (this.passwordRecovery.expirationDate < new Date()) {
+      return false;
+    }
+    // Если пароль уже востановлен
+    // Возвращаем false
+    if (this.passwordRecovery.isRecovered) {
+      return false;
+    }
+    // Если дата истечения срока действия больше текущей даты
+    // Если пароль можно востановить
+    // Возвращаем true
+    return true;
+  }
   // Подтверждение аккаунта
   confirm() {
     // Если аккаунт нельзя подтвердить, возвращаем ошибку
@@ -99,9 +117,34 @@ export class User {
     const recoveryCode = generateUUID();
     // Генерируем дату истечения востановления пароля
     const expirationDate = add(new Date(), { hours: 1, minutes: 30 });
+    // Записываем код востановления пароля
     this.passwordRecovery.recoveryCode = recoveryCode;
+    // Записываем срок действия кода для востановления пароля
     this.passwordRecovery.expirationDate = expirationDate;
+    // Позволяем востановить пароль
     this.passwordRecovery.isRecovered = false;
+  }
+  // Обновление пароля пользователя
+  async updatePassword(newPassword: string) {
+    // Если аккаунт нельзя подтвердить, возвращаем ошибку
+    if (!this.canBePasswordRecovery())
+      throw new Error(`The password cannot be restored`);
+    // Если пароль уже был востановлен, возвращаем ошибку
+    if (this.passwordRecovery.isRecovered)
+      throw new Error(`The password has already been restored`);
+    // Генерируем соль
+    const passwordSalt = bcryptService.generateSaltSync(10);
+    // Генерируем хэш пароля
+    const passwordHash = await bcryptService.generateHash(
+      newPassword,
+      passwordSalt,
+    );
+    // Обновляем пароль
+    this.accountData.passwordHash = passwordHash;
+    // Подтверждаем востановление пароля
+    this.passwordRecovery.isRecovered = true;
+    // Очищаем код востановления пароля
+    this.passwordRecovery.recoveryCode = '';
   }
   // Аутентификация пользователя
   async isCheckCredentials(password: string) {
@@ -190,8 +233,10 @@ export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.methods = {
   updateRefreshToken: User.prototype.updateRefreshToken,
   canBeConfirmed: User.prototype.canBeConfirmed,
+  canBePasswordRecovery: User.prototype.canBePasswordRecovery,
   updateConfirmationCode: User.prototype.updateConfirmationCode,
   updateRecoveryCodeByEmail: User.prototype.updateRecoveryCodeByEmail,
+  updatePassword: User.prototype.updatePassword,
   confirm: User.prototype.confirm,
   isCheckCredentials: User.prototype.isCheckCredentials,
   generateAuthTokens: User.prototype.generateAuthTokens,
