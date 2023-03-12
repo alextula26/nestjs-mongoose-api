@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -46,9 +47,9 @@ export class UserController {
     // Создаем пользователя
     const { userId, statusCode, statusMessage } =
       await this.userService.createUser(createUserDto);
-    // Если при создании пользователя возникли ошибки возращаем статус ошибки
-    if (statusCode !== HttpStatus.CREATED) {
-      throw new HttpException(statusMessage, statusCode);
+    // Если при создании пользователя возникли ошибки возращаем статус и текст ошибки
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
     }
     // Порлучаем созданного пользователя в формате ответа пользователю
     const foundUser = await this.userQueryRepository.findUserById(userId);

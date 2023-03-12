@@ -30,7 +30,7 @@ export class CreateUserDto {
     message: 'The password field must be at least 3, got $value',
   })
   @MaxLength(20, {
-    message: 'The password field must be no more than 10, got $value',
+    message: 'The password field must be no more than 20, got $value',
   })
   password: string;
 

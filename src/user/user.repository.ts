@@ -20,6 +20,17 @@ export class UserRepository {
 
     return foundUser;
   }
+  async findByConfirmationCode(code: string) {
+    const foundUser = await this.UserModel.findOne({
+      'emailConfirmation.confirmationCode': code,
+    });
+
+    if (!foundUser) {
+      return null;
+    }
+
+    return foundUser;
+  }
   // Создаем документ пользователя
   async createUser({
     login,
