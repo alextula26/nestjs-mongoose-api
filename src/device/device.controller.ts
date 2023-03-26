@@ -1,25 +1,28 @@
 import {
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
+  Delete,
   Req,
+  Param,
   UnauthorizedException,
+  NotFoundException,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
   UseGuards,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+
 import { AuthGuardRefreshToken } from '../auth.guard';
+import { DeleteAllDevicesCommand, DeleteDeviceByIdCommand } from './use-cases';
 import { DeviceQueryRepository } from './device.query.repository';
-import { DeviceService } from './device.service';
 import { DeviceViewModel } from './types';
 
 @UseGuards(AuthGuardRefreshToken)
 @Controller('api/security/devices')
 export class DeviceController {
   constructor(
-    private readonly deviceService: DeviceService,
+    private readonly commandBus: CommandBus,
     private readonly deviceQueryRepository: DeviceQueryRepository,
   ) {}
   // Получение списка устройств
@@ -49,13 +52,19 @@ export class DeviceController {
     // Получаем идентификатор пользователя
     const userId = request.userId;
     // Удаляем устройство
-    const { statusCode, statusMessage } =
-      await this.deviceService.deleteDeviceById(deviceId, userId);
-    // Если при удалении устройства вернулась ошибка, возвращаем ее
-    if (statusCode !== HttpStatus.NO_CONTENT) {
-      throw new HttpException(statusMessage, statusCode);
+    const { statusCode } = await this.commandBus.execute(
+      new DeleteDeviceByIdCommand(deviceId, userId),
+    );
+    if (statusCode === HttpStatus.UNAUTHORIZED) {
+      throw new UnauthorizedException();
     }
-    // Иначе возвращаем true
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
+    }
+    if (statusCode === HttpStatus.FORBIDDEN) {
+      throw new ForbiddenException();
+    }
+
     return true;
   }
   // Удаление всех устройств, кроме текущего устройства
@@ -69,11 +78,15 @@ export class DeviceController {
     // Получаем текущее устройство
     const currentDeviceId = request.deviceId;
     // Удаляем устройства
-    const { statusCode, statusMessage } =
-      await this.deviceService.deleteAllDevices(currentDeviceId, userId);
+    const { statusCode } = await this.commandBus.execute(
+      new DeleteAllDevicesCommand(currentDeviceId, userId),
+    );
     // Если при удалении устройств вернулась ошибка, возвращаем ее
-    if (statusCode !== HttpStatus.NO_CONTENT) {
-      throw new HttpException(statusMessage, statusCode);
+    if (statusCode === HttpStatus.UNAUTHORIZED) {
+      throw new UnauthorizedException();
+    }
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
     }
     // Иначе возвращаем true
     return true;

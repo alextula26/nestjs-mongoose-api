@@ -1,6 +1,8 @@
 import { IntersectionType } from '@nestjs/mapped-types';
-import { IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
+
+import { IsBlogExist } from '../../blog/custom-validators/customValidateBlog';
 
 export class CreatePostBaseDto {
   @IsNotEmpty({
@@ -41,17 +43,11 @@ export class CreatePostBaseDto {
 }
 
 export class BlogIdDto {
-  @IsNotEmpty({
-    message: 'The blogId field is required',
+  @IsString()
+  @IsBlogExist({
+    message: 'The blog ID is not defined',
   })
-  @Transform(({ value }) => value.trim())
-  @MinLength(1, {
-    message: 'The blogId field must be at least 1, got $value',
-  })
-  @MaxLength(20, {
-    message: 'The blogId field must be no more than 20, got $value',
-  })
-  blogId: string;
+  blogId: undefined;
 }
 
 export class CreatePostDto extends IntersectionType(

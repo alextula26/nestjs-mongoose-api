@@ -1,4 +1,3 @@
-export * from './AddLikeToCommentModel';
 export * from './CommentMethodsType';
 export * from './CommentStaticsType';
 export * from './CommentViewModel';

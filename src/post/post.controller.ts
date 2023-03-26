@@ -1,35 +1,58 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
   Post,
   Put,
+  Delete,
+  Req,
   Query,
+  Param,
+  Body,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuardBasic } from '../auth.guard';
-import { ResponseViewModelDetail } from '../types';
-import { PostQueryRepository } from './post.query.repository';
-import { PostService } from './post.service';
+import { CommandBus } from '@nestjs/cqrs';
+
+import { AuthGuardBasic, AuthGuardBearer } from '../auth.guard';
+
 import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
+import { CreateCommentDto } from '../comment/dto';
+import { AddLikeStatusDTO } from '../likeStatus/dto';
+
+import { PostService } from './post.service';
+import { PostQueryRepository } from './post.query.repository';
+import { CommentQueryRepository } from '../comment/comment.query.repository';
+
+import { LikeStatuses, ResponseViewModelDetail } from '../types';
 import { PostViewModel, QueryPostModel } from './types';
+import { CommentViewModel, QueryCommentModel } from '../comment/types';
+
+import {
+  CreatePostCommand,
+  UpdatePostCommand,
+  DeletePostCommand,
+} from './use-cases';
+import { CreateCommentCommand } from '../comment/use-cases';
+import { UpdateLikeStatusPostCommand } from '../likeStatus/use-cases';
 
 @Controller('api/posts')
 export class PostController {
   constructor(
+    private readonly commandBus: CommandBus,
     private readonly postService: PostService,
     private readonly postQueryRepository: PostQueryRepository,
+    private readonly commentQueryRepository: CommentQueryRepository,
   ) {}
-
   @Get()
+  @UseGuards(AuthGuardBearer)
   @HttpCode(HttpStatus.OK)
   // Получение списка постов
   async findAllPosts(
+    @Req() request: Request & { userId: string },
     @Query()
     {
       searchNameTerm,
@@ -39,8 +62,8 @@ export class PostController {
       sortDirection,
     }: QueryPostModel,
   ): Promise<ResponseViewModelDetail<PostViewModel>> {
-    const userId = '';
     const allPosts = await this.postQueryRepository.findAllPosts(
+      request.userId,
       {
         searchNameTerm,
         pageNumber,
@@ -48,24 +71,26 @@ export class PostController {
         sortBy,
         sortDirection,
       },
-      userId,
     );
 
     return allPosts;
   }
   // Получение конкретного поста по его идентификатору
   @Get(':postId')
+  @UseGuards(AuthGuardBearer)
   @HttpCode(HttpStatus.OK)
-  async findPostById(@Param('postId') postId: string): Promise<PostViewModel> {
-    const userId = '';
+  async findPostById(
+    @Req() request: Request & { userId: string },
+    @Param('postId') postId: string,
+  ): Promise<PostViewModel> {
     // Получаем конкретный пост по его идентификатору
     const foundPost = await this.postQueryRepository.findPostById(
       postId,
-      userId,
+      request.userId,
     );
-    // Если пост не найден возвращаем ошибку
+    // Если пост не найден возвращаем ошибку 404
     if (!foundPost) {
-      throw new HttpException('Post is not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException();
     }
     // Возвращаем пост в формате ответа пользователю
     return foundPost;
@@ -78,14 +103,21 @@ export class PostController {
     @Body() createPostDto: CreatePostDto,
   ): Promise<PostViewModel> {
     // Создаем пост
-    const { postId, statusCode, statusMessage } =
-      await this.postService.createPost(createPostDto);
+    const { postId, statusCode } = await this.commandBus.execute(
+      new CreatePostCommand(createPostDto),
+    );
     // Если при создании поста возникли ошибки возращаем статус ошибки
-    if (statusCode !== HttpStatus.CREATED) {
-      throw new HttpException(statusMessage, statusCode);
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
+    }
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException();
     }
     // Порлучаем созданный пост в формате ответа пользователю
-    const foundPost = await this.postQueryRepository.findPostById(postId);
+    const foundPost = await this.postQueryRepository.findPostById(
+      postId,
+      LikeStatuses.NONE,
+    );
     // Возвращаем созданный пост
     return foundPost;
   }
@@ -96,31 +128,127 @@ export class PostController {
   async updatePost(
     @Param('postId') postId: string,
     @Body() updatePostDto: UpdatePostDto,
-  ): Promise<boolean> {
+  ): Promise<void> {
     // Обновляем пост
-    const { statusCode, statusMessage } = await this.postService.updatePost(
-      postId,
-      updatePostDto,
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new UpdatePostCommand(postId, updatePostDto),
     );
-    // Если при обновлении поста возникли ошибки возращаем статус ошибки
-    if (statusCode !== HttpStatus.NO_CONTENT) {
-      throw new HttpException(statusMessage, statusCode);
+
+    if (statusCode === HttpStatus.FORBIDDEN) {
+      throw new ForbiddenException(statusMessage);
     }
 
-    return true;
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException(statusMessage);
+    }
+
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
+    }
   }
   // Удаление поста
   @Delete(':postId')
   @UseGuards(AuthGuardBasic)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePostById(@Param('postId') postId: string): Promise<boolean> {
-    // Удаляем пост
-    const isPostDeleted = await this.postService.deletePostById(postId);
-    // Если при удалении поста вернулись ошибка возвращаем ее
+    // Удаляем пост и связанные с ним комментарии
+    const isPostDeleted = await this.commandBus.execute(
+      new DeletePostCommand(postId),
+    );
+    // Если при удалении пост не был найден, возвращаем ошибку 404
     if (!isPostDeleted) {
-      throw new HttpException('Post is not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException();
     }
     // Иначе возвращаем true
     return isPostDeleted;
+  }
+  // Получение списка комментариев по идентификатору поста
+  @Get(':postId/comments')
+  @UseGuards(AuthGuardBearer)
+  @HttpCode(HttpStatus.OK)
+  // Получение списка постов конкретного блогера
+  async findCommentsByPostId(
+    @Req() request: Request & { userId: string },
+    @Param('postId') postId: string,
+    @Query()
+    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
+  ): Promise<ResponseViewModelDetail<CommentViewModel>> {
+    // Ищем пост по идентификатору
+    const foundPost = await this.postService.findPostById(postId);
+    // Если блог не найден возвращаем ошибку
+    if (!foundPost) {
+      throw new NotFoundException();
+    }
+
+    const commentsByPostId =
+      await this.commentQueryRepository.findCommentsByPostId(
+        postId,
+        request.userId,
+        {
+          pageNumber,
+          pageSize,
+          sortBy,
+          sortDirection,
+        },
+      );
+
+    return commentsByPostId;
+  }
+  // Создание комментария
+  @Post(':postId/comments')
+  @UseGuards(AuthGuardBearer)
+  @HttpCode(HttpStatus.CREATED)
+  async createCommentsByPostId(
+    @Req() request: Request & { userId: string },
+    @Param('postId') postId: string,
+    @Body() createCommentDto: CreateCommentDto,
+  ): Promise<CommentViewModel> {
+    // Создаем комментарий
+    const { commentId, statusCode, statusMessage } =
+      await this.commandBus.execute(
+        new CreateCommentCommand(request.userId, postId, createCommentDto),
+      );
+    // Если пост для которого создается комментарий не найден
+    // Возвращаем статус ошибки 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException(statusMessage);
+    }
+    // Если при создании комментария возникли ошибки возращаем статус ошибки 400
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
+    }
+
+    // Порлучаем созданный комментарий в формате ответа пользователю
+    const foundComment = await this.commentQueryRepository.findCommentById(
+      commentId,
+      LikeStatuses.NONE,
+    );
+    // Возвращаем созданный комментарий
+    return foundComment;
+  }
+  // Обновление лайк статуса поста
+  @Put(':postId/like-status')
+  @UseGuards(AuthGuardBearer)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateCommentLikeStatus(
+    @Req() request: Request & { userId: string },
+    @Param('postId') postId: string,
+    @Body() addLikeStatusDTO: AddLikeStatusDTO,
+  ): Promise<void> {
+    // Обновляем лайк статус поста
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new UpdateLikeStatusPostCommand(request.userId, postId, addLikeStatusDTO),
+    );
+
+    // Если пост не найден, возращаем статус ошибки 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
+    }
+
+    // Если при обновлении лайк статуса поста возникли ошибки
+    // Возращаем статус ошибки 400
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
+    }
   }
 }

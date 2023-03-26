@@ -1,4 +1,3 @@
-import { LikeStatusCommentEntity } from '../entity';
 import { LikeStatuses } from '../../types';
 
 type CommentatorInfo = {
@@ -10,7 +9,6 @@ type LikesInfo = {
   likesCount: number;
   dislikesCount: number;
   myStatus: LikeStatuses;
-  likes?: LikeStatusCommentEntity[];
 };
 
 export type CommentViewModel = {

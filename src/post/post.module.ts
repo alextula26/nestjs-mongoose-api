@@ -1,19 +1,33 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { BlogModule } from '../blog/blog.module';
+import { CqrsModule } from '@nestjs/cqrs';
+
 import { PostController } from './post.controller';
+import { PostService } from './post.service';
+import {
+  CreatePostUseCase,
+  UpdatePostUseCase,
+  CreatePostsByBlogIdUseCase,
+  DeletePostUseCase,
+} from './use-cases';
 import { PostQueryRepository } from './post.query.repository';
 import { PostRepository } from './post.repository';
-import { PostService } from './post.service';
 import { Post, PostSchema } from './schemas';
+
+const useCases = [
+  CreatePostUseCase,
+  UpdatePostUseCase,
+  CreatePostsByBlogIdUseCase,
+  DeletePostUseCase,
+];
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
-    BlogModule,
+    CqrsModule,
   ],
   controllers: [PostController],
-  providers: [PostService, PostRepository, PostQueryRepository],
+  providers: [PostService, PostRepository, PostQueryRepository, ...useCases],
   exports: [PostRepository],
 })
 export class PostModule {}

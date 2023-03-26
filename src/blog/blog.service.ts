@@ -1,9 +1,7 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { isEmpty } from 'lodash';
+import { Injectable } from '@nestjs/common';
+
 import { BlogRepository } from './blog.repository';
 import { BlogDocument } from './schemas';
-import { validateOrRejectModel } from '../validate';
-import { CreateBlogDto, UpdateBlogDto } from './dto/blog.dto';
 
 @Injectable()
 export class BlogService {
@@ -13,75 +11,5 @@ export class BlogService {
     const foundBlogById = await this.blogRepository.findBlogById(id);
 
     return foundBlogById;
-  }
-  // Создание блогера
-  async createBlog(createBlogDto: CreateBlogDto): Promise<{
-    blogId: string;
-    statusCode: HttpStatus;
-    statusMessage: string;
-  }> {
-    await validateOrRejectModel(createBlogDto, CreateBlogDto);
-
-    const { name, description, websiteUrl } = createBlogDto;
-    // Создаем документ блогера
-    const madeBlog = await this.blogRepository.createBlog({
-      name,
-      description,
-      websiteUrl,
-    });
-    // Сохраняем блогера в базе
-    const createdBlog = await this.blogRepository.save(madeBlog);
-    // Ищем созданного блогера в базе
-    const foundBlog = await this.blogRepository.findBlogById(createdBlog.id);
-    // Если блогера нет, т.е. он не сохранился, возвращаем ошибку
-    if (!foundBlog) {
-      return {
-        blogId: null,
-        statusCode: HttpStatus.BAD_REQUEST,
-        statusMessage: `Blog creation error`,
-      };
-    }
-    // Возвращаем идентификатор созданного блогера и статус CREATED
-    return {
-      blogId: createdBlog.id,
-      statusCode: HttpStatus.CREATED,
-      statusMessage: 'Blog created',
-    };
-  }
-  // Обновление блогера
-  async updateBlog(
-    blogId: string,
-    updateBlogDto: UpdateBlogDto,
-  ): Promise<{
-    statusCode: HttpStatus;
-    statusMessage: string;
-  }> {
-    await validateOrRejectModel(updateBlogDto, UpdateBlogDto);
-
-    const { name, description, websiteUrl } = updateBlogDto;
-    // Ищем блогера
-    const foundBlog = await this.blogRepository.findBlogById(blogId);
-    // Если блогер не найден, возвращаем ошибку
-    if (isEmpty(foundBlog)) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
-        statusMessage: `Blog with id ${blogId} was not found`,
-      };
-    }
-    // Обновляем блогера
-    foundBlog.updateAllBlog({ name, description, websiteUrl });
-    // Сохраняем в базу
-    await this.blogRepository.save(foundBlog);
-    // Возвращаем статус NO_CONTENT
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      statusMessage: 'Blog updated',
-    };
-  }
-  // Удаление блогера
-  async deleteBlogById(blogId: string): Promise<boolean> {
-    const isDeleteBlogById = await this.blogRepository.deleteBlogById(blogId);
-
-    return isDeleteBlogById;
   }
 }

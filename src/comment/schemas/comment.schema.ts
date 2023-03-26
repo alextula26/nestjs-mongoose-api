@@ -1,58 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { trim } from 'lodash';
 import { HydratedDocument, Model } from 'mongoose';
-import { LikeStatuses } from '../../types';
-import { CommentEntity, LikeStatusCommentEntity } from '../entity';
+import { CommentEntity } from '../entity';
 import {
   CommentStaticsType,
   MakeCommentModel,
   UpdateCommentModel,
 } from '../types';
-
-@Schema()
-export class LikeStatusComment {
-  @Prop({
-    type: String,
-    required: [true, 'The id field is required'],
-  })
-  id: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The userId field is required'],
-  })
-  userId: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The userLogin field is required'],
-    trim: true,
-    minLength: [3, 'The userLogin field must be at least 3, got {VALUE}'],
-    maxLength: [10, 'The userLogin field must be no more than 10, got {VALUE}'],
-    match: /^[a-zA-Z0-9_-]*$/,
-  })
-  userLogin: string;
-
-  @Prop({
-    type: String,
-    enum: {
-      values: [LikeStatuses.NONE, LikeStatuses.LIKE, LikeStatuses.DISLIKE],
-      message: '{VALUE} is not supported',
-    },
-    default: LikeStatuses.NONE,
-  })
-  likeStatus: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The createdAt field is required'],
-    trim: true,
-  })
-  createdAt: string;
-}
-
-export const LikeStatusCommentSchema =
-  SchemaFactory.createForClass(LikeStatusComment);
 
 @Schema()
 export class Comment {
@@ -112,9 +66,6 @@ export class Comment {
   })
   dislikesCount: number;
 
-  @Prop({ type: [LikeStatusCommentSchema], default: [] })
-  likes: LikeStatusCommentEntity[];
-
   setContent(content: string) {
     if (!trim(content)) {
       throw new Error('The content field is required');
@@ -132,6 +83,17 @@ export class Comment {
 
   updateComment({ content }: UpdateCommentModel) {
     this.setContent(content);
+  }
+
+  updateLikeStatusesCount({
+    likesCount,
+    dislikesCount,
+  }: {
+    likesCount: number;
+    dislikesCount: number;
+  }) {
+    this.likesCount = likesCount;
+    this.dislikesCount = dislikesCount;
   }
 
   static make(
@@ -157,6 +119,7 @@ export const CommentSchema = SchemaFactory.createForClass(Comment);
 CommentSchema.methods = {
   setContent: Comment.prototype.setContent,
   updateComment: Comment.prototype.updateComment,
+  updateLikeStatusesCount: Comment.prototype.updateLikeStatusesCount,
 };
 
 CommentSchema.statics = {

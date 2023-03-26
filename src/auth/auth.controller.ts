@@ -1,21 +1,37 @@
 import {
-  BadRequestException,
-  Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
-  Ip,
   Post,
   Req,
   Res,
+  Ip,
+  Body,
+  BadRequestException,
   UnauthorizedException,
+  HttpCode,
+  HttpStatus,
   UseGuards,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { Request, Response } from 'express';
-import { AuthGuardRefreshToken } from '../auth.guard';
-import { AuthService } from './auth.service';
-import { UserAuthViewModel } from './types';
+
+import {
+  AuthCountRequests,
+  AuthGuardBearer,
+  AuthGuardRefreshToken,
+} from '../auth.guard';
+import {
+  LoginCommand,
+  LogoutCommand,
+  RefreshTokenCommand,
+  RegisterUserCommand,
+  RegistrationConfirmationCommand,
+  RegistrationEmailResendingCommand,
+  PasswordRecoveryCommand,
+  NewPasswordCommand,
+} from './use-cases';
+import { AuthQueryRepository } from './auth.query.repository';
+
 import {
   AuthUserDto,
   ConfirmPasswordDto,
@@ -23,18 +39,17 @@ import {
   RegistrationEmailDto,
   RegistrationUserDto,
 } from './dto';
-import { AuthQueryRepository } from './auth.query.repository';
-import { AuthAccessTokenModel } from './types/AuthUserModel';
+import { UserAuthViewModel, AuthAccessTokenModel } from './types';
 
 @Controller('api/auth')
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
+    private readonly commandBus: CommandBus,
     private readonly authQueryRepository: AuthQueryRepository,
   ) {}
   // Получение данных о пользователе
   @Get('me')
-  @UseGuards(AuthGuardRefreshToken)
+  @UseGuards(AuthGuardBearer)
   @HttpCode(HttpStatus.OK)
   async me(
     @Req() request: Request & { userId: string },
@@ -52,6 +67,7 @@ export class AuthController {
   }
   // Аутентификация пользователя
   @Post('/login')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.OK)
   async login(
     @Req() request: Request,
@@ -59,18 +75,19 @@ export class AuthController {
     @Body() authUserDto: AuthUserDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthAccessTokenModel> {
+    // Формируем наименование устройства
     const deviceTitle = request.headers['user-agent'] || '';
-    const authUserTokens = await this.authService.checkCredentials(
-      ip,
-      deviceTitle,
-      authUserDto,
+    // Формируем токены
+    const authUserTokens = await this.commandBus.execute(
+      new LoginCommand(ip, deviceTitle, authUserDto),
     );
     // Если аутентифицированный пользователь не найден возвращаем ошибку 401
     if (!authUserTokens) {
       throw new UnauthorizedException();
     }
+    // Получаем токены
     const { accessToken, refreshToken } = authUserTokens;
-    // Пишем новый refresh токен в cookie
+    // Сохраняем новый refresh токен в cookie
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
@@ -78,76 +95,84 @@ export class AuthController {
     // Возвращаем сформированный access токен
     return { accessToken };
   }
-  // logout пользователя
+  // Logout пользователя
   @Post('/logout')
   @UseGuards(AuthGuardRefreshToken)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
-    @Req() request: Request & { userId: string; deviceId: string },
+    @Req()
+    request: Request & { userId: string; deviceId: string; deviceIat: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    const { statusCode } = await this.authService.logout(
-      request.userId,
-      request.deviceId,
+    // Выполняем logout пользователя
+    const { statusCode } = await this.commandBus.execute(
+      new LogoutCommand(request.userId, request.deviceId, request.deviceIat),
     );
     // Если при logout возникли ошибки возращаем статус ошибки 401
-    if (statusCode !== HttpStatus.NO_CONTENT) {
+    if (statusCode === HttpStatus.UNAUTHORIZED) {
       throw new UnauthorizedException();
     }
     // Удаляем refresh токен из cookie
     response.clearCookie('refreshToken');
   }
-  // Получить refresh токен
+  // Получение access и refresh токена
   @Post('refresh-token')
   @UseGuards(AuthGuardRefreshToken)
   @HttpCode(HttpStatus.OK)
   async refreshToken(
-    @Req() request: Request & { userId: string; deviceId: string },
+    @Req()
+    request: Request & { userId: string; deviceId: string; deviceIat: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthAccessTokenModel> {
-    const authUserTokens = await this.authService.refreshToken(
-      request.userId,
-      request.deviceId,
+    // Формируем токены
+    const authUserTokens = await this.commandBus.execute(
+      new RefreshTokenCommand(
+        request.userId,
+        request.deviceId,
+        request.deviceIat,
+      ),
     );
-    // Если при logout возникли ошибки возращаем статус ошибки 401
+    // Если при получении токенов возникли ошибки возращаем статус ошибки 401
     if (!authUserTokens) {
       throw new UnauthorizedException();
     }
+    // Получаем токены
     const { accessToken, refreshToken } = authUserTokens;
     // Пишем новый refresh токен в cookie
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
     });
-
+    // Возвращаем access токен
     return { accessToken };
   }
   // Регистрация пользователя
   @Post('registration')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.NO_CONTENT)
   async registration(
     @Body() registrationUserDto: RegistrationUserDto,
   ): Promise<void> {
     // Регестрируем пользователя
-    const { statusCode, statusMessage } = await this.authService.registerUser(
-      registrationUserDto,
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new RegisterUserCommand(registrationUserDto),
     );
-    // Если при регистрации пользователя возникли ошибки возращаем статус ошибки
+    // Если при регистрации пользователя возникли ошибки возращаем статус ошибки 400
     if (statusCode === HttpStatus.BAD_REQUEST) {
       throw new BadRequestException(statusMessage);
     }
   }
   // Подтверждение email по коду
   @Post('/registration-confirmation')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(
     @Body() registrationConfirmationDto: RegistrationConfirmationDto,
   ): Promise<void> {
     // Проверяем код подтверждения email
-    const { statusCode, statusMessage } =
-      await this.authService.registrationConfirmation(
-        registrationConfirmationDto,
-      );
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new RegistrationConfirmationCommand(registrationConfirmationDto),
+    );
     // Если при проверке кода подтверждения email возникли ошибки возвращаем статус и текст ошибки
     if (statusCode === HttpStatus.BAD_REQUEST) {
       throw new BadRequestException(statusMessage);
@@ -155,13 +180,15 @@ export class AuthController {
   }
   // Повторная отправка кода подтверждения email
   @Post('/registration-email-resending')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(
     @Body() registrationEmailDto: RegistrationEmailDto,
   ): Promise<void> {
     // Повторно формируем код подтверждения email, обновляем код у пользователя и отправляем письмо
-    const { statusCode, statusMessage } =
-      await this.authService.registrationEmailResending(registrationEmailDto);
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new RegistrationEmailResendingCommand(registrationEmailDto),
+    );
     // Если новый код подтверждения email не сформирован или не сохранен для пользователя или письмо не отправлено,
     // возвращаем статус 400
     if (statusCode === HttpStatus.BAD_REQUEST) {
@@ -170,13 +197,15 @@ export class AuthController {
   }
   // Восстановление пароля с помощью подтверждения по электронной почте.
   @Post('/password-recovery')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(
     @Body() registrationEmailDto: RegistrationEmailDto,
   ): Promise<void> {
     // Повторно формируем код востановления пароля, обновляем код у пользователя и отправляем письмо
-    const { statusCode, statusMessage } =
-      await this.authService.passwordRecovery(registrationEmailDto);
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new PasswordRecoveryCommand(registrationEmailDto),
+    );
     // Если код востановления пароля не сформирован или не сохранен для пользователя или письмо не отправлено,
     // возвращаем статус 400
     if (statusCode === HttpStatus.BAD_REQUEST) {
@@ -185,13 +214,14 @@ export class AuthController {
   }
   // Подтверждение восстановление пароля
   @Post('/new-password')
+  @UseGuards(AuthCountRequests)
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(
     @Body() confirmPasswordDto: ConfirmPasswordDto,
   ): Promise<void> {
     // Обновляем пароль пользователя
-    const { statusCode, statusMessage } = await this.authService.newPassword(
-      confirmPasswordDto,
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new NewPasswordCommand(confirmPasswordDto),
     );
     // Если пароль не обновился возвращаем статус 400
     if (statusCode === HttpStatus.BAD_REQUEST) {

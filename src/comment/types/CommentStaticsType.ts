@@ -1,4 +1,4 @@
-import { CommentDocument, CommentModelType } from '../../comment/schemas';
+import { CommentDocument, CommentModelType } from '../schemas';
 import { MakeCommentModel } from '../types';
 
 export type CommentStaticsType = {

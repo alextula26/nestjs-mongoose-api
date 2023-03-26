@@ -50,7 +50,6 @@ export class User {
 
   // Обновление refresh токена пользователя
   updateRefreshToken(refreshToken: string) {
-    if (!refreshToken) throw new Error('Bad refreshToken value!');
     this.refreshToken = refreshToken;
   }
   // Проверяем можно ли подтвердить аккаунт
@@ -168,16 +167,16 @@ export class User {
     // Формируем refresh токен
     const refreshToken = await jwtService.createRefreshToken(userId, deviceId);
     // Получаем дату истечения срока действия refresh токена
-    const expRefreshToken = await jwtService.getExpRefreshToken(refreshToken);
+    const iatRefreshToken = await jwtService.getIatRefreshToken(refreshToken);
     // Проверяем сформировалась ли дата истечения срока действия refresh токена
-    if (!expRefreshToken) {
+    if (!iatRefreshToken) {
       return null;
     }
     // Возвращаем access токен, refresh токен и дату истечения срока действия refresh токена
     return {
       accessToken,
       refreshToken,
-      expRefreshToken,
+      iatRefreshToken,
     };
   }
   static async make(

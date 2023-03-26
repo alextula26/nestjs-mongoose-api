@@ -12,7 +12,23 @@ export class SessionRepository {
   async save(user: SessionDocument): Promise<SessionDocument> {
     return await user.save();
   }
-  // Поиск документа конкретной сессии по ее идентификатору
+  // Поиск сессии по ip адресу, урлу и названию устройства
+  async findSession(
+    ip: string,
+    url: string,
+    deviceTitle: string,
+  ): Promise<SessionDocument | null> {
+    const foundSession = await this.SessionModel.findOne({
+      $and: [{ ip }, { url }, { deviceTitle }],
+    });
+
+    if (!foundSession) {
+      return null;
+    }
+
+    return foundSession;
+  }
+  // Поиск сессии по ее идентификатору
   async findSessionById(sessionId: string): Promise<SessionDocument | null> {
     const foundSession = await this.SessionModel.findOne({ id: sessionId });
 

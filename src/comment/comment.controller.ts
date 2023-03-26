@@ -1,74 +1,135 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
   Put,
+  Delete,
+  Req,
+  Param,
+  Body,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { CommentQueryRepository } from './comment.query.repository';
-import { CommentService } from './comment.service';
+import { CommandBus } from '@nestjs/cqrs';
+
+import { AuthGuardBearer } from '../auth.guard';
+
 import { UpdateCommentDto } from './dto';
+import { AddLikeStatusDTO } from '../likeStatus/dto';
+
+import { UpdateCommentCommand, DeleteCommentCommand } from './use-cases';
+import { UpdateLikeStatusCommentCommand } from '../likeStatus/use-cases';
+
+import { CommentQueryRepository } from './comment.query.repository';
+
 import { CommentViewModel } from './types';
 
+@UseGuards(AuthGuardBearer)
 @Controller('api/comments')
 export class CommentController {
   constructor(
-    private readonly commentService: CommentService,
+    private readonly commandBus: CommandBus,
     private readonly commentQueryRepository: CommentQueryRepository,
   ) {}
   // Получение конкретного комментария по его идентификатору
   @Get(':commentId')
   @HttpCode(HttpStatus.OK)
   async findCommentById(
+    @Req() request: Request & { userId: string },
     @Param('commentId') commentId: string,
   ): Promise<CommentViewModel> {
     // Получаем комментарий по идентификатору
     const foundComment = await this.commentQueryRepository.findCommentById(
       commentId,
+      request.userId,
     );
-    // Если комментарий не найден возвращаем ошибку
+    // Если комментарий не найден возвращаем ошибку 404
     if (!foundComment) {
-      throw new HttpException('Comment is not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException();
     }
     // Возвращаем комментарий в формате ответа пользователю
     return foundComment;
   }
   // Обновление комментария
   @Put(':commentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async updateComment(
+    @Req() request: Request & { userId: string },
     @Param('commentId') commentId: string,
     @Body() updateCommentDto: UpdateCommentDto,
   ): Promise<boolean> {
     // Обновляем комментарий
-    const { statusCode, statusMessage } =
-      await this.commentService.updateComment(commentId, updateCommentDto);
-
-    // Если при обновлении комментария возникли ошибки возращаем статус ошибки
-    if (statusCode !== HttpStatus.NO_CONTENT) {
-      throw new HttpException(statusMessage, statusCode);
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new UpdateCommentCommand(request.userId, commentId, updateCommentDto),
+    );
+    // Если комментарий не найден, возвращаем ошибку 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
     }
-
+    // Если пользователь не найден, возвращаем ошибку 400
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException();
+    }
+    // Проверяем принадлежит ли обновляемый комментарий пользователю
+    if (statusCode === HttpStatus.FORBIDDEN) {
+      throw new ForbiddenException(statusMessage);
+    }
+    // Иначе возвращаем статус 204
     return true;
   }
   // Удаление комментария
   @Delete(':commentId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCommentById(
+    @Req() request: Request & { userId: string },
     @Param('commentId') commentId: string,
   ): Promise<boolean> {
     // Удаляем комментарий
-    const isCommentDeleted = await this.commentService.deleteCommentById(
-      commentId,
+    const { statusCode } = await this.commandBus.execute(
+      new DeleteCommentCommand(commentId, request.userId),
     );
-    // Если при удалении комментария вернулись ошибка возвращаем ее
-    if (!isCommentDeleted) {
-      throw new HttpException('Comment is not found', HttpStatus.NOT_FOUND);
+
+    // Если комментарий не найден, возвращаем ошиюку 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
     }
-    // Иначе возвращаем true
-    return isCommentDeleted;
+    // Если удаляется комментарий, который не принадлежит пользователю
+    // Возвращаем 403
+    if (statusCode === HttpStatus.FORBIDDEN) {
+      throw new ForbiddenException();
+    }
+    // Иначе возвращаем статус 204
+    return true;
+  }
+  // Обновление лайк статуса комментария
+  @Put(':commentId/like-status')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateCommentLikeStatus(
+    @Req() request: Request & { userId: string },
+    @Param('commentId') commentId: string,
+    @Body() addLikeStatusDTO: AddLikeStatusDTO,
+  ): Promise<void> {
+    // Обновляем лайк статус комментария
+    const { statusCode, statusMessage } = await this.commandBus.execute(
+      new UpdateLikeStatusCommentCommand(
+        request.userId,
+        commentId,
+        addLikeStatusDTO,
+      ),
+    );
+
+    // Если комментарий не найден, возращаем статус ошибки 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
+    }
+
+    // Если при обновлении лайк статуса комментария возникли ошибки
+    // Возращаем статус ошибки 400
+    if (statusCode === HttpStatus.BAD_REQUEST) {
+      throw new BadRequestException(statusMessage);
+    }
   }
 }

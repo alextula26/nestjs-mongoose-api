@@ -1,28 +1,33 @@
 import {
-  BadRequestException,
-  Body,
   Controller,
-  Delete,
   Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
   Post,
+  Delete,
   Query,
+  Param,
+  Body,
+  BadRequestException,
+  NotFoundException,
+  HttpCode,
+  HttpStatus,
   UseGuards,
 } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
+
 import { AuthGuardBasic } from '../auth.guard';
-import { UserQueryRepository } from './user.query.repository';
+import { CreateUserCommand } from './use-cases';
 import { UserService } from './user.service';
+import { UserQueryRepository } from './user.query.repository';
+
+import { CreateUserDto } from './dto/user.dto';
 import { ResponseViewModelDetail } from '../types';
 import { QueryUserModel, UserViewModel } from './types';
-import { CreateUserDto } from './dto/user.dto';
 
 @UseGuards(AuthGuardBasic)
 @Controller('api/users')
 export class UserController {
   constructor(
+    private readonly commandBus: CommandBus,
     private readonly userService: UserService,
     private readonly userQueryRepository: UserQueryRepository,
   ) {}
@@ -45,8 +50,9 @@ export class UserController {
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserViewModel> {
     // Создаем пользователя
-    const { userId, statusCode, statusMessage } =
-      await this.userService.createUser(createUserDto);
+    const { userId, statusCode, statusMessage } = await this.commandBus.execute(
+      new CreateUserCommand(createUserDto),
+    );
     // Если при создании пользователя возникли ошибки возращаем статус и текст ошибки
     if (statusCode === HttpStatus.BAD_REQUEST) {
       throw new BadRequestException(statusMessage);
@@ -62,9 +68,9 @@ export class UserController {
   async deleteUserById(@Param('userId') userId: string): Promise<boolean> {
     // Удаляем пользователя
     const isUserDeleted = await this.userService.deleteUserById(userId);
-    // Если при удалении пользователя вернулись ошибка возвращаем ее
+    // Если при удалении пользователь не был найден, возвращаем ошибку 404
     if (!isUserDeleted) {
-      throw new HttpException('User is not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException();
     }
     // Иначе возвращаем true
     return isUserDeleted;

@@ -49,7 +49,7 @@ export class DeviceRepository {
     userId: string,
   ): Promise<boolean> {
     const { deletedCount } = await this.DeviceModel.deleteMany({
-      $and: [{ userId }, { id: { $ne: currentDeviceId } }],
+      $and: [{ userId }, { deviceId: { $ne: currentDeviceId } }],
     });
 
     return deletedCount > 0;

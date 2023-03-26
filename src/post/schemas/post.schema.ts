@@ -1,53 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { trim } from 'lodash';
 import { Document, HydratedDocument, Model } from 'mongoose';
-import { LikeStatuses } from '../../types';
-import { PostEntity, LikeStatusPostEntity, NewestLikesEntity } from '../entity';
+import { PostEntity, NewestLikesEntity } from '../entity';
 import { PostStaticsType, MakePostModel, UpdatePostModel } from '../types';
-
-@Schema()
-export class LikeStatusPost {
-  @Prop({
-    type: String,
-    required: [true, 'The id field is required'],
-  })
-  id: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The userId field is required'],
-  })
-  userId: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The userLogin field is required'],
-    trim: true,
-    minLength: [3, 'The userLogin field must be at least 3, got {VALUE}'],
-    maxLength: [10, 'The userLogin field must be no more than 10, got {VALUE}'],
-    match: /^[a-zA-Z0-9_-]*$/,
-  })
-  userLogin: string;
-
-  @Prop({
-    type: String,
-    enum: {
-      values: [LikeStatuses.NONE, LikeStatuses.LIKE, LikeStatuses.DISLIKE],
-      message: '{VALUE} is not supported',
-    },
-    default: LikeStatuses.NONE,
-  })
-  likeStatus: string;
-
-  @Prop({
-    type: String,
-    required: [true, 'The createdAt field is required'],
-    trim: true,
-  })
-  createdAt: string;
-}
-export const LikeStatusPostSchema =
-  SchemaFactory.createForClass(LikeStatusPost);
 
 @Schema()
 export class NewestLikes {
@@ -126,7 +81,7 @@ export class Post extends Document {
     required: [true, 'The blogId field is required'],
     trim: true,
     minLength: [1, 'The blogId field must be at least 1, got {VALUE}'],
-    maxLength: [20, 'The blogId field must be no more than 20, got {VALUE}'],
+    maxLength: [50, 'The blogId field must be no more than 50, got {VALUE}'],
   })
   blogId: string;
 
@@ -157,9 +112,6 @@ export class Post extends Document {
     default: 0,
   })
   dislikesCount: number;
-
-  @Prop({ type: [LikeStatusPostSchema], default: [] })
-  likes: LikeStatusPostEntity[];
 
   @Prop({ type: [NewestLikesSchema], default: [] })
   newestLikes: NewestLikesEntity[];
@@ -215,6 +167,17 @@ export class Post extends Document {
     this.setContent(content);
   }
 
+  updateLikeStatusesCount({
+    likesCount,
+    dislikesCount,
+  }: {
+    likesCount: number;
+    dislikesCount: number;
+  }) {
+    this.likesCount = likesCount;
+    this.dislikesCount = dislikesCount;
+  }
+
   static make(
     { title, shortDescription, content, blogId, blogName }: MakePostModel,
     PostModel: PostModelType,
@@ -243,6 +206,7 @@ PostSchema.methods = {
   setShortDescription: Post.prototype.setShortDescription,
   setContent: Post.prototype.setContent,
   updateAllPost: Post.prototype.updateAllPost,
+  updateLikeStatusesCount: Post.prototype.updateLikeStatusesCount,
 };
 
 PostSchema.statics = {

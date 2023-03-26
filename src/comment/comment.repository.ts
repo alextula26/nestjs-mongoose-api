@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment, CommentDocument, CommentModelType } from './schemas';
+import { MakeCommentModel } from './types';
 
 @Injectable()
 export class CommentRepository {
@@ -10,6 +11,20 @@ export class CommentRepository {
   // Сохранение комментария в базе
   async save(comment: CommentDocument): Promise<CommentDocument> {
     return await comment.save();
+  }
+  // Создание документа комментария
+  async createComment({
+    content,
+    postId,
+    userId,
+    userLogin,
+  }: MakeCommentModel): Promise<CommentDocument> {
+    const madeComment = this.CommentModel.make(
+      { content, postId, userId, userLogin },
+      this.CommentModel,
+    );
+
+    return madeComment;
   }
   // Поиск документа конкретного комментария по его идентификатору
   async findCommentById(commentId: string): Promise<CommentDocument | null> {

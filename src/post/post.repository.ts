@@ -11,8 +11,8 @@ export class PostRepository {
     return await blog.save();
   }
   // Поиск документа конкретного поста по его идентификатору
-  async findPostById(blogId: string): Promise<PostDocument | null> {
-    const foundPost = await this.PostModel.findOne({ id: blogId });
+  async findPostById(postId: string): Promise<PostDocument | null> {
+    const foundPost = await this.PostModel.findOne({ id: postId });
 
     if (!foundPost) {
       return null;

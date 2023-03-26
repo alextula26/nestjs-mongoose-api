@@ -21,18 +21,18 @@ async function bootstrap() {
       transform: true,
       stopAtFirstError: true,
       exceptionFactory(errors) {
-        throw new BadRequestException(
-          errors.reduce((acc, e) => {
-            const constraintsKeys = Object.keys(e.constraints);
-            return [
-              ...acc,
-              ...constraintsKeys.map((ckey) => ({
-                message: e.constraints[ckey],
-                field: e.property,
-              })),
-            ];
-          }, []),
-        );
+        const errorsResponce = errors.reduce((acc, e) => {
+          const constraintsKeys = Object.keys(e.constraints);
+          return [
+            ...acc,
+            ...constraintsKeys.map((ckey) => ({
+              message: e.constraints[ckey],
+              field: e.property,
+            })),
+          ];
+        }, []);
+
+        throw new BadRequestException(errorsResponce);
       },
     }),
   );

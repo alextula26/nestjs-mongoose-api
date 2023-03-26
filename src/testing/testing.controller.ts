@@ -5,6 +5,7 @@ import { PostRepository } from '../post/post.repository';
 import { CommentRepository } from '../comment/comment.repository';
 import { DeviceRepository } from '../device/device.repository';
 import { SessionRepository } from '../session/session.repository';
+import { LikeStatusRepository } from '../likeStatus/likeStatus.repository';
 
 @Controller('api/testing')
 export class TestingController {
@@ -15,6 +16,7 @@ export class TestingController {
     private readonly commentRepository: CommentRepository,
     private readonly deviceRepository: DeviceRepository,
     private readonly sessionRepository: SessionRepository,
+    private readonly likeStatusRepository: LikeStatusRepository,
   ) {}
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -25,5 +27,6 @@ export class TestingController {
     await this.commentRepository.deleteAll();
     await this.deviceRepository.deleteAll();
     await this.sessionRepository.deleteAll();
+    await this.likeStatusRepository.deleteAll();
   }
 }

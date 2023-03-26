@@ -28,20 +28,21 @@ export const jwtService = {
   async getRefreshTokenUserIdAndDeviceId(token: string) {
     try {
       const result: any = jwt.verify(token, settings.REFRESH_TOKEN_SECRET);
+
       return {
         userId: result.userId,
         deviceId: result.deviceId,
+        iat: new Date(result.iat * 1000).toISOString(),
       };
     } catch (error) {
-      console.log(error);
+      console.log('getRefreshTokenUserIdAndDeviceId error', error);
       return null;
     }
   },
-  async getExpRefreshToken(token: string) {
+  async getIatRefreshToken(token: string) {
     try {
       const result: any = jwt.verify(token, settings.REFRESH_TOKEN_SECRET);
-
-      return result.exp * 1000;
+      return result.iat * 1000;
     } catch (error) {
       return null;
     }

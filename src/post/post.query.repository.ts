@@ -1,14 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { LikeStatuses, ResponseViewModelDetail, SortDirection } from '../types';
-import { Post, PostDocument, PostModelType } from './schemas';
+
+import {
+  LikeStatuses,
+  PageType,
+  ResponseViewModelDetail,
+  SortDirection,
+} from '../types';
 import { QueryPostModel, PostViewModel } from './types';
+
+import { Post, PostModelType } from './schemas';
+import { LikeStatus, LikeStatusModelType } from '../likeStatus/schemas';
 
 @Injectable()
 export class PostQueryRepository {
-  constructor(@InjectModel(Post.name) private PostModel: PostModelType) {}
+  constructor(
+    @InjectModel(Post.name) private PostModel: PostModelType,
+    @InjectModel(LikeStatus.name) private LikeStatusModel: LikeStatusModelType,
+  ) {}
   // Получение списка постов
   async findAllPosts(
+    userId: string,
     {
       searchNameTerm,
       pageNumber,
@@ -16,7 +28,6 @@ export class PostQueryRepository {
       sortBy = 'createdAt',
       sortDirection = SortDirection.DESC,
     }: QueryPostModel,
-    userId?: string,
   ): Promise<ResponseViewModelDetail<PostViewModel>> {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
@@ -39,20 +50,58 @@ export class PostQueryRepository {
       .skip(skip)
       .limit(size);
 
-    return this._getPostsViewModelDetail(
-      {
-        items: posts,
-        totalCount,
-        pagesCount,
-        page: number,
-        pageSize: size,
-      },
-      userId,
+    const postsViewModel = await Promise.all(
+      posts.map(async (post) => {
+        const foundLikeStatus = await this.LikeStatusModel.findOne({
+          parentId: post.id,
+          userId,
+          pageType: PageType.POST,
+        });
+
+        const newestLikes = await this.LikeStatusModel.find({
+          parentId: post.id,
+          likeStatus: LikeStatuses.LIKE,
+          pageType: PageType.POST,
+        })
+          .sort({ createdAt: -1 })
+          .limit(3);
+
+        return {
+          id: post.id,
+          title: post.title,
+          shortDescription: post.shortDescription,
+          content: post.content,
+          blogId: post.blogId,
+          blogName: post.blogName,
+          createdAt: post.createdAt,
+          extendedLikesInfo: {
+            likesCount: post.likesCount,
+            dislikesCount: post.dislikesCount,
+            myStatus: foundLikeStatus
+              ? foundLikeStatus.likeStatus
+              : LikeStatuses.NONE,
+            newestLikes: newestLikes.map((i) => ({
+              addedAt: i.createdAt,
+              userId: i.userId,
+              login: i.userLogin,
+            })),
+          },
+        };
+      }),
     );
+
+    return {
+      pagesCount,
+      totalCount,
+      page: number,
+      pageSize: size,
+      items: postsViewModel,
+    };
   }
   // Получение списка постов по идентификатору блогера
   async findPostsByBlogId(
     blogId: string,
+    userId: string,
     {
       searchNameTerm,
       pageNumber,
@@ -60,7 +109,6 @@ export class PostQueryRepository {
       sortBy = 'createdAt',
       sortDirection = SortDirection.DESC,
     }: QueryPostModel,
-    userId?: string,
   ): Promise<ResponseViewModelDetail<PostViewModel>> {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
@@ -83,21 +131,58 @@ export class PostQueryRepository {
       .skip(skip)
       .limit(size);
 
-    return this._getPostsViewModelDetail(
-      {
-        items: posts,
-        totalCount,
-        pagesCount,
-        page: number,
-        pageSize: size,
-      },
-      userId,
+    const postsViewModel = await Promise.all(
+      posts.map(async (post) => {
+        const foundLikeStatus = await this.LikeStatusModel.findOne({
+          parentId: post.id,
+          userId,
+          pageType: PageType.POST,
+        });
+
+        const newestLikes = await this.LikeStatusModel.find({
+          parentId: post.id,
+          likeStatus: LikeStatuses.LIKE,
+          pageType: PageType.POST,
+        })
+          .sort({ createdAt: -1 })
+          .limit(3);
+
+        return {
+          id: post.id,
+          title: post.title,
+          shortDescription: post.shortDescription,
+          content: post.content,
+          blogId: post.blogId,
+          blogName: post.blogName,
+          createdAt: post.createdAt,
+          extendedLikesInfo: {
+            likesCount: post.likesCount,
+            dislikesCount: post.dislikesCount,
+            myStatus: foundLikeStatus
+              ? foundLikeStatus.likeStatus
+              : LikeStatuses.NONE,
+            newestLikes: newestLikes.map((i) => ({
+              addedAt: i.createdAt,
+              userId: i.userId,
+              login: i.userLogin,
+            })),
+          },
+        };
+      }),
     );
+
+    return {
+      totalCount,
+      pagesCount,
+      page: number,
+      pageSize: size,
+      items: postsViewModel,
+    };
   }
   // Получение конкретного поста по его идентификатору
   async findPostById(
     postId: string,
-    userId?: string,
+    userId: string,
   ): Promise<PostViewModel | null> {
     const foundPost = await this.PostModel.findOne({ id: postId });
 
@@ -105,86 +190,40 @@ export class PostQueryRepository {
       return null;
     }
 
-    return this._getPostViewModel(foundPost, userId);
-  }
-  _getMyPostStatus(postDocument: PostDocument, userId: string): LikeStatuses {
-    if (!userId) {
-      return LikeStatuses.NONE;
-    }
+    const foundLikeStatusByUserId = await this.LikeStatusModel.findOne({
+      parentId: foundPost.id,
+      userId,
+      pageType: PageType.POST,
+    });
 
-    const currentLike1 = postDocument.likes.find(
-      (item) => item.userId === userId,
-    );
-
-    if (!currentLike1) {
-      return LikeStatuses.NONE;
-    }
-
-    return currentLike1.likeStatus;
-  }
-  _getPostViewModel(postDocument: PostDocument, userId: string): PostViewModel {
-    const myStatus = this._getMyPostStatus(postDocument, userId);
+    const newestLikes = await this.LikeStatusModel.find({
+      parentId: foundPost.id,
+      likeStatus: LikeStatuses.LIKE,
+      pageType: PageType.POST,
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
 
     return {
-      id: postDocument.id,
-      title: postDocument.title,
-      shortDescription: postDocument.shortDescription,
-      content: postDocument.content,
-      blogId: postDocument.blogId,
-      blogName: postDocument.blogName,
-      createdAt: postDocument.createdAt,
+      id: foundPost.id,
+      title: foundPost.title,
+      shortDescription: foundPost.shortDescription,
+      content: foundPost.content,
+      blogId: foundPost.blogId,
+      blogName: foundPost.blogName,
+      createdAt: foundPost.createdAt,
       extendedLikesInfo: {
-        likesCount: postDocument.likesCount,
-        dislikesCount: postDocument.dislikesCount,
-        myStatus: myStatus,
-        newestLikes: postDocument.newestLikes.map((i) => ({
+        likesCount: foundPost.likesCount,
+        dislikesCount: foundPost.dislikesCount,
+        myStatus: foundLikeStatusByUserId
+          ? foundLikeStatusByUserId.likeStatus
+          : LikeStatuses.NONE,
+        newestLikes: newestLikes.map((i) => ({
           addedAt: i.createdAt,
           userId: i.userId,
           login: i.userLogin,
         })),
-        // likes: dbPost.likes,
       },
-    };
-  }
-  _getPostsViewModelDetail(
-    {
-      items,
-      totalCount,
-      pagesCount,
-      page,
-      pageSize,
-    }: ResponseViewModelDetail<PostDocument>,
-    userId: string,
-  ): ResponseViewModelDetail<PostViewModel> {
-    return {
-      pagesCount,
-      page,
-      pageSize,
-      totalCount,
-      items: items.map((item) => {
-        const myStatus = this._getMyPostStatus(item, userId);
-
-        return {
-          id: item.id,
-          title: item.title,
-          shortDescription: item.shortDescription,
-          content: item.content,
-          blogId: item.blogId,
-          blogName: item.blogName,
-          createdAt: item.createdAt,
-          extendedLikesInfo: {
-            likesCount: item.likesCount,
-            dislikesCount: item.dislikesCount,
-            myStatus: myStatus,
-            newestLikes: item.newestLikes.map((i) => ({
-              addedAt: i.createdAt,
-              userId: i.userId,
-              login: i.userLogin,
-            })),
-            // likes: item.likes,
-          },
-        };
-      }),
     };
   }
 }
