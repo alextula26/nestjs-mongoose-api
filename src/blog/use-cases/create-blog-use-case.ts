@@ -1,25 +1,39 @@
 import { HttpStatus } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { isEmpty } from 'lodash';
 
 import { validateOrRejectModel } from '../../validate';
 import { CreateBlogDto } from '../dto/blog.dto';
 import { BlogRepository } from '../blog.repository';
+import { UserRepository } from '../../user/user.repository';
 
 export class CreateBlogCommand {
-  constructor(public createBlogDto: CreateBlogDto) {}
+  constructor(public userId: string, public createBlogDto: CreateBlogDto) {}
 }
 
 @CommandHandler(CreateBlogCommand)
 export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
-  constructor(private readonly blogRepository: BlogRepository) {}
+  constructor(
+    private readonly blogRepository: BlogRepository,
+    private readonly userRepository: UserRepository,
+  ) {}
   // Создание блогера
   async execute(command: CreateBlogCommand): Promise<{
     blogId: string;
     statusCode: HttpStatus;
   }> {
-    const { createBlogDto } = command;
+    const { userId, createBlogDto } = command;
     // Валидируем DTO
     await validateOrRejectModel(createBlogDto, CreateBlogDto);
+    // Ищем пользователя
+    const foundUser = await this.userRepository.findUserById(userId);
+    // Если пользователь не найден, возвращаем ошибку 400
+    if (isEmpty(foundUser)) {
+      return {
+        blogId: null,
+        statusCode: HttpStatus.BAD_REQUEST,
+      };
+    }
     // Получаем поля из DTO
     const { name, description, websiteUrl } = createBlogDto;
     // Создаем документ блогера
@@ -27,18 +41,11 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
       name,
       description,
       websiteUrl,
+      userId: foundUser.id,
+      userLogin: foundUser.accountData.login,
     });
     // Сохраняем блогера в базе
     const createdBlog = await this.blogRepository.save(madeBlog);
-    // Ищем созданного блогера в базе
-    const foundBlog = await this.blogRepository.findBlogById(createdBlog.id);
-    // Если блогера нет, т.е. он не сохранился, возвращаем ошибку 400
-    if (!foundBlog) {
-      return {
-        blogId: null,
-        statusCode: HttpStatus.BAD_REQUEST,
-      };
-    }
     // Возвращаем идентификатор созданного блогера и статус 201
     return {
       blogId: createdBlog.id,

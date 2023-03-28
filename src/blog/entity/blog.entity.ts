@@ -8,6 +8,8 @@ export class BlogEntity {
     public name: string,
     public description: string,
     public websiteUrl: string,
+    public userId: string,
+    public userLogin: string,
   ) {
     this.id = getNextStrId();
     this.isMembership = false;

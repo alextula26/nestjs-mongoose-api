@@ -43,7 +43,45 @@ export class BlogQueryRepository {
       pageSize: size,
     });
   }
+  async findAllBlogsByUserId(
+    userId: string,
+    {
+      searchNameTerm,
+      pageNumber,
+      pageSize,
+      sortBy = 'createdAt',
+      sortDirection = SortDirection.DESC,
+    }: QueryBlogModel,
+  ): Promise<ResponseViewModelDetail<BlogViewModel>> {
+    const number = pageNumber ? Number(pageNumber) : 1;
+    const size = pageSize ? Number(pageSize) : 10;
 
+    const filter: any = { userId: { $eq: userId } };
+    const sort: any = {
+      [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
+    };
+
+    if (searchNameTerm) {
+      filter.name = { $regex: searchNameTerm, $options: 'i' };
+    }
+
+    const totalCount = await this.BlogModel.countDocuments(filter);
+    const pagesCount = Math.ceil(totalCount / size);
+    const skip = (number - 1) * size;
+
+    const blogsByUserId = await this.BlogModel.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(size);
+
+    return this._getBlogsViewModelDetail({
+      items: blogsByUserId,
+      totalCount,
+      pagesCount,
+      page: number,
+      pageSize: size,
+    });
+  }
   async findBlogById(blogId: string): Promise<BlogViewModel | null> {
     const foundBlog = await this.BlogModel.findOne({ id: blogId });
 

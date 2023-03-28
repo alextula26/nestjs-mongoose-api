@@ -17,6 +17,7 @@ import { LikeStatus, LikeStatusSchema } from './likeStatus/schemas';
 import { AuthController } from './auth/auth.controller';
 import { UserController } from './user/user.controller';
 import { BlogController } from './blog/blog.controller';
+import { BloggerController } from './blog/blogger.controller';
 import { PostController } from './post/post.controller';
 import { DeviceController } from './device/device.controller';
 import { CommentController } from './comment/comment.controller';
@@ -50,7 +51,6 @@ import {
 import {
   CreatePostUseCase,
   UpdatePostUseCase,
-  CreatePostsByBlogIdUseCase,
   DeletePostUseCase,
 } from './post/use-cases';
 import {
@@ -124,7 +124,6 @@ const postProviders = [
   PostQueryRepository,
   CreatePostUseCase,
   UpdatePostUseCase,
-  CreatePostsByBlogIdUseCase,
   DeletePostUseCase,
 ];
 const commentProviders = [
@@ -191,6 +190,7 @@ const adapters = [EmailManager, EmailAdapter];
     AuthController,
     UserController,
     BlogController,
+    BloggerController,
     PostController,
     CommentController,
     DeviceController,

@@ -25,9 +25,11 @@ export class BlogRepository {
     name,
     description,
     websiteUrl,
+    userId,
+    userLogin,
   }: MakeBlogModel): Promise<BlogDocument> {
     const madeBlog = this.BlogModel.make(
-      { name, description, websiteUrl },
+      { name, description, websiteUrl, userId, userLogin },
       this.BlogModel,
     );
 

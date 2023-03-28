@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CqrsModule } from '@nestjs/cqrs';
 
 import { SessionService } from './session.service';
 import {
@@ -19,6 +20,7 @@ const useCases = [
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Session.name, schema: SessionSchema }]),
+    CqrsModule,
   ],
   providers: [SessionService, SessionRepository, ...useCases],
 })

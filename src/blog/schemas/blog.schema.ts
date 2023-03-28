@@ -40,6 +40,22 @@ export class Blog {
   websiteUrl: string;
 
   @Prop({
+    type: String,
+    required: [true, 'The id field is required'],
+  })
+  userId: string;
+
+  @Prop({
+    type: String,
+    required: [true, 'The login field is required'],
+    trim: true,
+    minLength: [3, 'The login field must be at least 3, got {VALUE}'],
+    maxLength: [10, 'The login field must be no more than 10, got {VALUE}'],
+    match: /^[a-zA-Z0-9_-]*$/,
+  })
+  userLogin: string;
+
+  @Prop({
     type: Boolean,
     required: [true, 'The isMembership field is required'],
   })
@@ -94,6 +110,13 @@ export class Blog {
     this.websiteUrl = websiteUrl;
   }
 
+  setUserId(userId: string) {
+    if (!trim(userId)) {
+      throw new Error('The userId field is required');
+    }
+    this.userId = userId;
+  }
+
   updateAllBlog({ name, description, websiteUrl }: UpdateBlogModel) {
     this.setName(name);
     this.setDescription(description);
@@ -101,13 +124,21 @@ export class Blog {
   }
 
   static make(
-    { name, description, websiteUrl }: MakeBlogModel,
+    { name, description, websiteUrl, userId, userLogin }: MakeBlogModel,
     BlogModel: BlogModelType,
   ): BlogDocument {
-    const blogName = trim(String(name));
-    const blogDescription = trim(String(description));
-    const blogWebsiteUrl = trim(String(websiteUrl));
-    const blog = new BlogEntity(blogName, blogDescription, blogWebsiteUrl);
+    const bloggerName = trim(String(name));
+    const bloggerDescription = trim(String(description));
+    const bloggerWebsiteUrl = trim(String(websiteUrl));
+    const bloggerUserId = trim(String(userId));
+    const bloggerUserLogin = trim(String(userLogin));
+    const blog = new BlogEntity(
+      bloggerName,
+      bloggerDescription,
+      bloggerWebsiteUrl,
+      bloggerUserId,
+      bloggerUserLogin,
+    );
 
     return new BlogModel(blog);
   }

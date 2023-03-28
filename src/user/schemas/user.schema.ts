@@ -5,6 +5,7 @@ import { HydratedDocument, Model } from 'mongoose';
 import { AccountDataSchema } from './accountData.schema';
 import { EmailConfirmationSchema } from './emailConfirmation.schema';
 import { PasswordRecoverySchema } from './passwordRecovery.schema';
+import { BanInfoSchema } from './banInfo.schema';
 import { UserEntity } from '../entity';
 import { bcryptService, jwtService } from '../../application';
 import { generateUUID } from '../../utils';
@@ -12,6 +13,7 @@ import {
   AccountDataType,
   EmailConfirmationType,
   PasswordRecoveryType,
+  BanInfoDataType,
   MakeUserModel,
   UserStaticsType,
 } from '../types';
@@ -41,6 +43,12 @@ export class User {
     required: true,
   })
   passwordRecovery: PasswordRecoveryType;
+
+  @Prop({
+    type: BanInfoSchema,
+    required: true,
+  })
+  banInfo: BanInfoDataType;
 
   @Prop({
     type: String,
@@ -179,6 +187,16 @@ export class User {
       iatRefreshToken,
     };
   }
+  // Отправить пользователя в бан
+  banUser(banReason: string) {
+    // Записываем дату бана пользователя
+    this.banInfo.banDate = new Date();
+    // Устанавливаем флаг бана пользователя
+    this.banInfo.isBanned = true;
+    // Записываем причину бана пользователя
+    this.banInfo.banReason = banReason;
+  }
+
   static async make(
     { login, password, email }: MakeUserModel,
     UserModel: UserModelType,
@@ -212,12 +230,19 @@ export class User {
       isRecovered: true,
     };
 
+    const banInfo = {
+      isBanned: false,
+      banDate: new Date(),
+      banReason: '',
+    };
+
     const refreshToken = '';
 
     const user = new UserEntity(
       accountData,
       emailConfirmation,
       passwordRecovery,
+      banInfo,
       refreshToken,
     );
 
@@ -239,6 +264,7 @@ UserSchema.methods = {
   confirm: User.prototype.confirm,
   isCheckCredentials: User.prototype.isCheckCredentials,
   generateAuthTokens: User.prototype.generateAuthTokens,
+  banUser: User.prototype.banUser,
 };
 
 UserSchema.statics = {

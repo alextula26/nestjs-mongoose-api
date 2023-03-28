@@ -7,19 +7,13 @@ import { PostService } from './post.service';
 import {
   CreatePostUseCase,
   UpdatePostUseCase,
-  CreatePostsByBlogIdUseCase,
   DeletePostUseCase,
 } from './use-cases';
 import { PostQueryRepository } from './post.query.repository';
 import { PostRepository } from './post.repository';
 import { Post, PostSchema } from './schemas';
 
-const useCases = [
-  CreatePostUseCase,
-  UpdatePostUseCase,
-  CreatePostsByBlogIdUseCase,
-  DeletePostUseCase,
-];
+const useCases = [CreatePostUseCase, UpdatePostUseCase, DeletePostUseCase];
 
 @Module({
   imports: [

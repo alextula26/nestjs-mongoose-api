@@ -24,7 +24,7 @@ import { ResponseViewModelDetail } from '../types';
 import { QueryUserModel, UserViewModel } from './types';
 
 @UseGuards(AuthGuardBasic)
-@Controller('api/users')
+@Controller('api/sa/users')
 export class UserController {
   constructor(
     private readonly commandBus: CommandBus,

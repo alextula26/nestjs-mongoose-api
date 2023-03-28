@@ -3,23 +3,20 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Req,
   Query,
   Param,
   Body,
   BadRequestException,
   NotFoundException,
-  ForbiddenException,
   HttpCode,
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
-import { AuthGuardBasic, AuthGuardBearer } from '../auth.guard';
+import { AuthGuardBearer } from '../auth.guard';
 
-import { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 import { CreateCommentDto } from '../comment/dto';
 import { AddLikeStatusDTO } from '../likeStatus/dto';
 
@@ -31,11 +28,6 @@ import { LikeStatuses, ResponseViewModelDetail } from '../types';
 import { PostViewModel, QueryPostModel } from './types';
 import { CommentViewModel, QueryCommentModel } from '../comment/types';
 
-import {
-  CreatePostCommand,
-  UpdatePostCommand,
-  DeletePostCommand,
-} from './use-cases';
 import { CreateCommentCommand } from '../comment/use-cases';
 import { UpdateLikeStatusPostCommand } from '../likeStatus/use-cases';
 
@@ -94,73 +86,6 @@ export class PostController {
     }
     // Возвращаем пост в формате ответа пользователю
     return foundPost;
-  }
-  // Создание поста
-  @Post()
-  @UseGuards(AuthGuardBasic)
-  @HttpCode(HttpStatus.CREATED)
-  async createPost(
-    @Body() createPostDto: CreatePostDto,
-  ): Promise<PostViewModel> {
-    // Создаем пост
-    const { postId, statusCode } = await this.commandBus.execute(
-      new CreatePostCommand(createPostDto),
-    );
-    // Если при создании поста возникли ошибки возращаем статус ошибки
-    if (statusCode === HttpStatus.NOT_FOUND) {
-      throw new NotFoundException();
-    }
-    if (statusCode === HttpStatus.BAD_REQUEST) {
-      throw new BadRequestException();
-    }
-    // Порлучаем созданный пост в формате ответа пользователю
-    const foundPost = await this.postQueryRepository.findPostById(
-      postId,
-      LikeStatuses.NONE,
-    );
-    // Возвращаем созданный пост
-    return foundPost;
-  }
-  // Обновление поста
-  @Put(':postId')
-  @UseGuards(AuthGuardBasic)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async updatePost(
-    @Param('postId') postId: string,
-    @Body() updatePostDto: UpdatePostDto,
-  ): Promise<void> {
-    // Обновляем пост
-    const { statusCode, statusMessage } = await this.commandBus.execute(
-      new UpdatePostCommand(postId, updatePostDto),
-    );
-
-    if (statusCode === HttpStatus.FORBIDDEN) {
-      throw new ForbiddenException(statusMessage);
-    }
-
-    if (statusCode === HttpStatus.NOT_FOUND) {
-      throw new NotFoundException(statusMessage);
-    }
-
-    if (statusCode === HttpStatus.BAD_REQUEST) {
-      throw new BadRequestException(statusMessage);
-    }
-  }
-  // Удаление поста
-  @Delete(':postId')
-  @UseGuards(AuthGuardBasic)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePostById(@Param('postId') postId: string): Promise<boolean> {
-    // Удаляем пост и связанные с ним комментарии
-    const isPostDeleted = await this.commandBus.execute(
-      new DeletePostCommand(postId),
-    );
-    // Если при удалении пост не был найден, возвращаем ошибку 404
-    if (!isPostDeleted) {
-      throw new NotFoundException();
-    }
-    // Иначе возвращаем true
-    return isPostDeleted;
   }
   // Получение списка комментариев по идентификатору поста
   @Get(':postId/comments')
@@ -239,12 +164,10 @@ export class PostController {
     const { statusCode, statusMessage } = await this.commandBus.execute(
       new UpdateLikeStatusPostCommand(request.userId, postId, addLikeStatusDTO),
     );
-
     // Если пост не найден, возращаем статус ошибки 404
     if (statusCode === HttpStatus.NOT_FOUND) {
       throw new NotFoundException();
     }
-
     // Если при обновлении лайк статуса поста возникли ошибки
     // Возращаем статус ошибки 400
     if (statusCode === HttpStatus.BAD_REQUEST) {

@@ -70,6 +70,11 @@ export class UserQueryRepository {
       login: userDocument.accountData.login,
       email: userDocument.accountData.email,
       createdAt: userDocument.accountData.createdAt,
+      banInfo: {
+        isBanned: userDocument.banInfo.isBanned,
+        banDate: userDocument.banInfo.banDate,
+        banReason: userDocument.banInfo.banReason,
+      },
     };
   }
   _getUsersViewModelDetail({
@@ -89,6 +94,11 @@ export class UserQueryRepository {
         login: item.accountData.login,
         email: item.accountData.email,
         createdAt: item.accountData.createdAt,
+        banInfo: {
+          isBanned: item.banInfo.isBanned,
+          banDate: item.banInfo.banDate,
+          banReason: item.banInfo.banReason,
+        },
       })),
     };
   }
