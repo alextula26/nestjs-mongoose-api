@@ -63,6 +63,7 @@ export class PostQueryRepository {
           parentId: post.id,
           likeStatus: LikeStatuses.LIKE,
           pageType: PageType.POST,
+          isBanned: false,
         })
           .sort({ createdAt: -1 })
           .limit(3);
@@ -160,6 +161,7 @@ export class PostQueryRepository {
           parentId: post.id,
           likeStatus: LikeStatuses.LIKE,
           pageType: PageType.POST,
+          isBanned: false,
         })
           .sort({ createdAt: -1 })
           .limit(3);
@@ -233,6 +235,7 @@ export class PostQueryRepository {
       parentId: foundPost.id,
       likeStatus: LikeStatuses.LIKE,
       pageType: PageType.POST,
+      isBanned: false,
     })
       .sort({ createdAt: -1 })
       .limit(3);
