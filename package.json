@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-mongoose-api-ya",
+  "name": "nestjs-mongoose-api",
   "version": "0.0.1",
   "description": "nestjs api",
   "author": "alextula26",
@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
-   "dependencies": {
+  "dependencies": {
     "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
