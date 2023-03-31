@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
-import { AuthBearerGuard } from '../../guards';
+import { AuthBearerGuard, AuthPublicGuard } from '../../guards';
 
 import { UpdateLikeStatusCommentCommand } from '../likeStatus/use-cases';
 import { AddLikeStatusDTO } from '../likeStatus/dto';
@@ -25,7 +25,6 @@ import { CommentQueryRepository } from './comment.query.repository';
 import { UpdateCommentDto } from './dto';
 import { CommentViewModel } from './types';
 
-@UseGuards(AuthBearerGuard)
 @Controller('api/comments')
 export class CommentController {
   constructor(
@@ -34,6 +33,7 @@ export class CommentController {
   ) {}
   // Получение конкретного комментария по его идентификатору
   @Get(':commentId')
+  @UseGuards(AuthPublicGuard)
   @HttpCode(HttpStatus.OK)
   async findCommentById(
     @Req() request: Request & { userId: string },
@@ -53,6 +53,7 @@ export class CommentController {
   }
   // Обновление комментария
   @Put(':commentId')
+  @UseGuards(AuthBearerGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateComment(
     @Req() request: Request & { userId: string },
@@ -80,6 +81,7 @@ export class CommentController {
   }
   // Удаление комментария
   @Delete(':commentId')
+  @UseGuards(AuthBearerGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCommentById(
     @Req() request: Request & { userId: string },
@@ -104,6 +106,7 @@ export class CommentController {
   }
   // Обновление лайк статуса комментария
   @Put(':commentId/like-status')
+  @UseGuards(AuthBearerGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateCommentLikeStatus(
     @Req() request: Request & { userId: string },

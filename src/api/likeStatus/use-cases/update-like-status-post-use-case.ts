@@ -3,7 +3,8 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { isEmpty } from 'lodash';
 
 import { validateOrRejectModel } from '../../../validate';
-import { LikeStatuses, PageType } from '../../../types';
+// import { LikeStatuses, PageType } from '../../../types';
+import { PageType } from '../../../types';
 
 import { UserRepository } from '../../user/user.repository';
 import { PostRepository } from '../../post/post.repository';
@@ -85,21 +86,21 @@ export class UpdateLikeStatusPostUseCase
       // Сохраняем созданный лайкстатус в базе
       await this.likeStatusRepository.save(madeLikeStatus);
       // Находим количество лайков поста
-      const likesCount = await this.likeStatusRepository.getLikeStatusCount(
+      /* const likesCount = await this.likeStatusRepository.getLikeStatusCount(
         postId,
         PageType.POST,
         LikeStatuses.LIKE,
-      );
+      ); */
       // Находим количество дизлайков поста
-      const dislikesCount = await this.likeStatusRepository.getLikeStatusCount(
+      /* const dislikesCount = await this.likeStatusRepository.getLikeStatusCount(
         postId,
         PageType.POST,
         LikeStatuses.DISLIKE,
-      );
+      ); */
       // Обновляем количесво лайков и дизлайков поста
-      foundPost.updateLikeStatusesCount({ likesCount, dislikesCount });
+      // foundPost.updateLikeStatusesCount({ likesCount, dislikesCount });
       // Сохраняем пост в базе
-      await this.postRepository.save(foundPost);
+      // await this.postRepository.save(foundPost);
       // Возвращаем статус 204
       return {
         statusCode: HttpStatus.NO_CONTENT,
@@ -126,21 +127,21 @@ export class UpdateLikeStatusPostUseCase
     // Сохраняем лайкстатус в базе
     await this.likeStatusRepository.save(foundLikeStatusOfUserPost);
     // Находим количество лайков поста
-    const likesCount = await this.likeStatusRepository.getLikeStatusCount(
+    /* const likesCount = await this.likeStatusRepository.getLikeStatusCount(
       postId,
       PageType.POST,
       LikeStatuses.LIKE,
-    );
+    ); */
     // Находим количество дизлайков поста
-    const dislikesCount = await this.likeStatusRepository.getLikeStatusCount(
+    /* const dislikesCount = await this.likeStatusRepository.getLikeStatusCount(
       postId,
       PageType.POST,
       LikeStatuses.DISLIKE,
-    );
+    ); */
     // Обновляем количесво лайков и дизлайков поста
-    foundPost.updateLikeStatusesCount({ likesCount, dislikesCount });
+    // foundPost.updateLikeStatusesCount({ likesCount, dislikesCount });
     // Сохраняем комментарий в базе
-    await this.postRepository.save(foundPost);
+    // await this.postRepository.save(foundPost);
     // Возвращаем статус 204
     return {
       statusCode: HttpStatus.NO_CONTENT,

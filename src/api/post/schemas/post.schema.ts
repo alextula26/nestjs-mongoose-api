@@ -173,7 +173,7 @@ export class Post extends Document {
     this.setContent(content);
   }
 
-  updateLikeStatusesCount({
+  /*updateLikeStatusesCount({
     likesCount,
     dislikesCount,
   }: {
@@ -182,7 +182,7 @@ export class Post extends Document {
   }) {
     this.likesCount = likesCount;
     this.dislikesCount = dislikesCount;
-  }
+  }*/
 
   static make(
     { title, shortDescription, content, blogId, blogName }: MakePostModel,
@@ -212,7 +212,7 @@ PostSchema.methods = {
   setShortDescription: Post.prototype.setShortDescription,
   setContent: Post.prototype.setContent,
   updateAllPost: Post.prototype.updateAllPost,
-  updateLikeStatusesCount: Post.prototype.updateLikeStatusesCount,
+  // updateLikeStatusesCount: Post.prototype.updateLikeStatusesCount,
 };
 
 PostSchema.statics = {

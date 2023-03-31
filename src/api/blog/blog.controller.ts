@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { AuthBearerGuard } from '../../guards';
+import { AuthPublicGuard } from '../../guards';
 import { ResponseViewModelDetail } from '../../types';
 
 import { PostQueryRepository } from '../post/post.query.repository';
@@ -66,7 +66,7 @@ export class BlogController {
   }
   // Получение списка постов по идентификатору блогера
   @Get(':blogId/posts')
-  @UseGuards(AuthBearerGuard)
+  @UseGuards(AuthPublicGuard)
   @HttpCode(HttpStatus.OK)
   // Получение списка постов конкретного блогера
   async findPostsByBlogId(

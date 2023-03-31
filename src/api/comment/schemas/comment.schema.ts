@@ -92,7 +92,7 @@ export class Comment {
     this.setContent(content);
   }
 
-  updateLikeStatusesCount({
+  /*updateLikeStatusesCount({
     likesCount,
     dislikesCount,
   }: {
@@ -101,7 +101,7 @@ export class Comment {
   }) {
     this.likesCount = likesCount;
     this.dislikesCount = dislikesCount;
-  }
+  }*/
 
   static make(
     { content, postId, userId, userLogin }: MakeCommentModel,
@@ -126,7 +126,7 @@ export const CommentSchema = SchemaFactory.createForClass(Comment);
 CommentSchema.methods = {
   setContent: Comment.prototype.setContent,
   updateComment: Comment.prototype.updateComment,
-  updateLikeStatusesCount: Comment.prototype.updateLikeStatusesCount,
+  // updateLikeStatusesCount: Comment.prototype.updateLikeStatusesCount,
 };
 
 CommentSchema.statics = {
