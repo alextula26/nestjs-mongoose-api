@@ -29,6 +29,9 @@ import { PostQueryRepository } from '../post/post.query.repository';
 import { CreatePostDto, UpdatePostDto } from '../post/dto/post.dto';
 import { PostViewModel } from '../post/types';
 
+import { CommentQueryRepository } from '../comment/comment.query.repository';
+import { QueryCommentModel, CommentByPostViewModel } from '../comment/types';
+
 import {
   CreateBlogCommand,
   DeleteBlogCommand,
@@ -45,7 +48,26 @@ export class BloggerController {
     private readonly commandBus: CommandBus,
     private readonly blogQueryRepository: BlogQueryRepository,
     private readonly postQueryRepository: PostQueryRepository,
+    private readonly commentQueryRepository: CommentQueryRepository,
   ) {}
+  // Получение списка комментария по всем постам блогера
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async findCommentsByAllPosts(
+    @Req() request: Request & { userId: string },
+    @Query()
+    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
+  ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
+    const allCommentsByUserId =
+      await this.commentQueryRepository.findCommentsByAllPosts(request.userId, {
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortDirection,
+      });
+
+    return allCommentsByUserId;
+  }
   // Получение списка блогеров привязанных к пользователю
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -118,7 +140,6 @@ export class BloggerController {
     // Возвращаем статус 204
     return true;
   }
-  // Доделать проверку юзера //
   // Удаление блогера
   @Delete(':blogId')
   @HttpCode(HttpStatus.NO_CONTENT)

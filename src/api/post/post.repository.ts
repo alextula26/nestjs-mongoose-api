@@ -28,9 +28,11 @@ export class PostRepository {
     content,
     blogId,
     blogName,
+    userId,
+    userLogin,
   }: MakePostModel): Promise<PostDocument> {
     const madePost = this.PostModel.make(
-      { title, shortDescription, content, blogId, blogName },
+      { title, shortDescription, content, blogId, blogName, userId, userLogin },
       this.PostModel,
     );
 

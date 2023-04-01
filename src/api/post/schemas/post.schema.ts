@@ -96,6 +96,22 @@ export class Post extends Document {
 
   @Prop({
     type: String,
+    required: [true, 'The id field is required'],
+  })
+  userId: string;
+
+  @Prop({
+    type: String,
+    required: [true, 'The login field is required'],
+    trim: true,
+    minLength: [3, 'The login field must be at least 3, got {VALUE}'],
+    maxLength: [10, 'The login field must be no more than 10, got {VALUE}'],
+    match: /^[a-zA-Z0-9_-]*$/,
+  })
+  userLogin: string;
+
+  @Prop({
+    type: String,
     required: [true, 'The createdAt field is required'],
     trim: true,
   })
@@ -173,30 +189,31 @@ export class Post extends Document {
     this.setContent(content);
   }
 
-  /*updateLikeStatusesCount({
-    likesCount,
-    dislikesCount,
-  }: {
-    likesCount: number;
-    dislikesCount: number;
-  }) {
-    this.likesCount = likesCount;
-    this.dislikesCount = dislikesCount;
-  }*/
-
   static make(
-    { title, shortDescription, content, blogId, blogName }: MakePostModel,
+    {
+      title,
+      shortDescription,
+      content,
+      blogId,
+      blogName,
+      userId,
+      userLogin,
+    }: MakePostModel,
     PostModel: PostModelType,
   ): PostDocument {
     const postTitle = trim(String(title));
     const postShortDescription = trim(String(shortDescription));
     const postContent = trim(String(content));
+    const postUserId = trim(String(userId));
+    const postUserLogin = trim(String(userLogin));
     const post = new PostEntity(
       postTitle,
       postShortDescription,
       postContent,
       blogId,
       blogName,
+      postUserId,
+      postUserLogin,
     );
 
     return new PostModel(post);

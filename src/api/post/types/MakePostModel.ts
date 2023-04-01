@@ -4,4 +4,6 @@ export type MakePostModel = {
   content: string;
   blogId: string;
   blogName: string;
+  userId: string;
+  userLogin: string;
 };

@@ -15,6 +15,8 @@ export class PostEntity {
     public content: string,
     public blogId: string,
     public blogName: string,
+    public userId: string,
+    public userLogin: string,
   ) {
     this.id = getNextStrId();
     this.likesCount = 0;

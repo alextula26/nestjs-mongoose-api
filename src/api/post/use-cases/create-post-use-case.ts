@@ -64,6 +64,8 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostsCommand> {
       content,
       blogId: foundBlog.id,
       blogName: foundBlog.name,
+      userId: foundUser.id,
+      userLogin: foundUser.accountData.login,
     });
     // Сохраняем пост в базе
     const createdPost = await this.postRepository.save(madePost);
