@@ -1,12 +1,14 @@
 import {
   IsBoolean,
   IsNotEmpty,
+  IsString,
   IsUrl,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
 import { Transform } from 'class-transformer';
+import { IsBlogExist } from '../custom-validators/customValidateBlog';
 
 export class CreateBlogDto {
   @IsNotEmpty({
@@ -54,4 +56,31 @@ export class BanBlogDto {
     message: 'The isBanned field contains a logical type',
   })
   isBanned: boolean;
+}
+
+export class BanUserDto {
+  @IsString()
+  @IsNotEmpty({
+    message: 'The blogId field is required',
+  })
+  @IsBlogExist()
+  blogId: string;
+
+  @IsNotEmpty({
+    message: 'The isBanned field is required',
+  })
+  @IsBoolean({
+    message: 'The isBanned field contains a logical type',
+  })
+  isBanned: boolean;
+
+  @IsString()
+  @IsNotEmpty({
+    message: 'The banReason field is required',
+  })
+  @Transform(({ value }) => value.trim())
+  @MinLength(20, {
+    message: 'The banReason field must be at least 20, got $value',
+  })
+  banReason: string;
 }

@@ -4,6 +4,5 @@ export * from './MakeUserModel';
 export * from './AccountDataType';
 export * from './EmailConfirmationType';
 export * from './PasswordRecoveryType';
-export * from './BanInfoDataType';
 export * from './UserMethodsType';
 export * from './UserStaticsType';

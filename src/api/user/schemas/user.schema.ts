@@ -5,6 +5,7 @@ import { HydratedDocument, Model } from 'mongoose';
 
 import { bcryptService, jwtService } from '../../../application';
 import { generateUUID } from '../../../utils';
+import { BanInfoType } from '../../../types';
 
 import { AccountDataSchema } from './accountData.schema';
 import { EmailConfirmationSchema } from './emailConfirmation.schema';
@@ -16,7 +17,6 @@ import {
   AccountDataType,
   EmailConfirmationType,
   PasswordRecoveryType,
-  BanInfoDataType,
   MakeUserModel,
   UserStaticsType,
 } from '../types';
@@ -51,7 +51,7 @@ export class User implements UserEntity {
     type: BanInfoSchema,
     required: true,
   })
-  banInfo: BanInfoDataType;
+  banInfo: BanInfoType;
 
   @Prop({
     type: String,
@@ -246,7 +246,7 @@ export class User implements UserEntity {
       isRecovered: true,
     };
 
-    const banInfo: BanInfoDataType = {
+    const banInfo: BanInfoType = {
       isBanned: false,
       banDate: null,
       banReason: null,

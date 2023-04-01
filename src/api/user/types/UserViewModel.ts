@@ -1,4 +1,4 @@
-import { BanInfoDataType } from './BanInfoDataType';
+import { BanInfoType } from '../../../types';
 
 export type UserViewModel = {
   /**
@@ -12,5 +12,5 @@ export type UserViewModel = {
   login: string;
   email: string;
   createdAt: string;
-  banInfo: BanInfoDataType;
+  banInfo: BanInfoType;
 };

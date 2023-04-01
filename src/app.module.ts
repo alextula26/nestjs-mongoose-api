@@ -13,6 +13,7 @@ import { Comment, CommentSchema } from './api/comment/schemas';
 import { Device, DeviceSchema } from './api/device/schemas';
 import { Session, SessionSchema } from './api/session/schemas';
 import { LikeStatus, LikeStatusSchema } from './api/likeStatus/schemas';
+import { Ban, BanSchema } from './api/ban/schemas';
 
 import { AuthController } from './api/auth/auth.controller';
 import { UserController } from './api/user/user.controller';
@@ -89,6 +90,7 @@ import { PostQueryRepository } from './api/post/post.query.repository';
 import { CommentQueryRepository } from './api/comment/comment.query.repository';
 import { DeviceQueryRepository } from './api/device/device.query.repository';
 import { AuthQueryRepository } from './api/auth/auth.query.repository';
+import { BanQueryRepository } from './api/ban/bam.query.repository';
 
 import { EmailAdapter } from './adapters';
 import { EmailManager } from './managers';
@@ -160,6 +162,8 @@ const likeStatusSProviders = [
   UpdateLikeStatusCommentUseCase,
   UpdateLikeStatusPostUseCase,
 ];
+const banSProviders = [BanQueryRepository];
+
 const adapters = [EmailManager, EmailAdapter];
 
 @Module({
@@ -177,6 +181,7 @@ const adapters = [EmailManager, EmailAdapter];
     MongooseModule.forFeature([
       { name: LikeStatus.name, schema: LikeStatusSchema },
     ]),
+    MongooseModule.forFeature([{ name: Ban.name, schema: BanSchema }]),
     MailerModule.forRoot({
       transport: {
         service: 'gmail',
@@ -213,6 +218,7 @@ const adapters = [EmailManager, EmailAdapter];
     ...deviceProviders,
     ...sessionSProviders,
     ...likeStatusSProviders,
+    ...banSProviders,
     ...adapters,
   ],
   exports: [
