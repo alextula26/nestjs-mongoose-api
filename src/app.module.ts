@@ -49,6 +49,7 @@ import {
   UpdateBlogUseCase,
   DeleteBlogUseCase,
   BindWithUserBlogUseCase,
+  BanBlogUseCase,
 } from './api/blog/use-cases';
 import {
   CreatePostUseCase,
@@ -121,6 +122,7 @@ const blogProviders = [
   UpdateBlogUseCase,
   DeleteBlogUseCase,
   BindWithUserBlogUseCase,
+  BanBlogUseCase,
 ];
 const postProviders = [
   PostService,

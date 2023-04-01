@@ -19,7 +19,7 @@ export class BlogQueryRepository {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
 
-    const filter: any = {};
+    const filter: any = { isBanned: false };
     const sort: any = {
       [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
     };
@@ -58,7 +58,10 @@ export class BlogQueryRepository {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
 
-    const filter: any = { userId: { $eq: userId } };
+    const filter: any = {
+      $and: [{ userId: { $eq: userId }, isBanned: false }],
+    };
+
     const sort: any = {
       [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
     };
@@ -85,7 +88,10 @@ export class BlogQueryRepository {
     });
   }
   async findBlogById(blogId: string): Promise<BlogViewModel | null> {
-    const foundBlog = await this.BlogModel.findOne({ id: blogId });
+    const foundBlog = await this.BlogModel.findOne({
+      id: blogId,
+      isBanned: false,
+    });
 
     if (!foundBlog) {
       return null;
@@ -183,6 +189,10 @@ export class BlogQueryRepository {
         blogOwnerInfo: {
           userId: item.userId,
           userLogin: item.userLogin,
+        },
+        banInfo: {
+          isBanned: item.isBanned,
+          banDate: item.banDate,
         },
       })),
     };

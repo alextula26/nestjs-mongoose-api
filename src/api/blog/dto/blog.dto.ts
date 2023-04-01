@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsUrl, MaxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsUrl,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 import { Transform } from 'class-transformer';
 
@@ -39,3 +45,13 @@ export class CreateBlogDto {
 }
 
 export class UpdateBlogDto extends CreateBlogDto {}
+
+export class BanBlogDto {
+  @IsNotEmpty({
+    message: 'The isBanned field is required',
+  })
+  @IsBoolean({
+    message: 'The isBanned field contains a logical type',
+  })
+  isBanned: boolean;
+}

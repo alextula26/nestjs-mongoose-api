@@ -69,6 +69,12 @@ export class Blog {
   isBanned: boolean;
 
   @Prop({
+    type: Date,
+    default: null,
+  })
+  banDate: Date;
+
+  @Prop({
     type: String,
     required: [true, 'The createdAt field is required'],
     trim: true,
@@ -141,6 +147,13 @@ export class Blog {
     this.setUserId(userId);
     this.setUserLogin(userLogin);
   }
+  // Бан блоггера
+  banBlog(isBanned: boolean) {
+    // Устанавливаем флаг бана блогера
+    this.isBanned = isBanned;
+    // Записываем дату бана блогера
+    this.banDate = isBanned ? new Date() : null;
+  }
 
   static make(
     { name, description, websiteUrl, userId, userLogin }: MakeBlogModel,
@@ -175,6 +188,7 @@ BlogSchema.methods = {
   setUserLogin: Blog.prototype.setUserLogin,
   updateAllBlog: Blog.prototype.updateAllBlog,
   bindWithUser: Blog.prototype.bindWithUser,
+  banBlog: Blog.prototype.banBlog,
 };
 
 BlogSchema.statics = {

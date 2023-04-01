@@ -12,6 +12,7 @@ import {
   UpdateBlogUseCase,
   DeleteBlogUseCase,
   BindWithUserBlogUseCase,
+  BanBlogUseCase,
 } from './use-cases';
 import { BlogRepository } from './blog.repository';
 import { BlogQueryRepository } from './blog.query.repository';
@@ -22,6 +23,7 @@ const useCases = [
   UpdateBlogUseCase,
   DeleteBlogUseCase,
   BindWithUserBlogUseCase,
+  BanBlogUseCase,
 ];
 
 @Module({

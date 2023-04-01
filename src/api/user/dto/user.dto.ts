@@ -45,7 +45,7 @@ export class CreateUserDto {
 
 export class BanUserDto {
   @IsNotEmpty({
-    message: 'The login field is required',
+    message: 'The isBanned field is required',
   })
   @IsBoolean({
     message: 'The isBanned field contains a logical type',
@@ -53,7 +53,7 @@ export class BanUserDto {
   isBanned: boolean;
 
   @IsNotEmpty({
-    message: 'The password field is required',
+    message: 'The banReason field is required',
   })
   @Transform(({ value }) => value.trim())
   @MinLength(20, {

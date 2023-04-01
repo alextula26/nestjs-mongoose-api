@@ -2,41 +2,40 @@ import { HttpStatus } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { isEmpty } from 'lodash';
 
+import { validateOrRejectModel } from '../../../validate';
+
 import { UserRepository } from '../../user/user.repository';
 
 import { BlogRepository } from '../blog.repository';
+import { BanBlogDto } from '../dto';
 
-export class BindWithUserBlogCommand {
-  constructor(public userId: string, public blogId: string) {}
+export class BanBlogCommand {
+  constructor(public blogId: string, public banBlogDto: BanBlogDto) {}
 }
 
-@CommandHandler(BindWithUserBlogCommand)
-export class BindWithUserBlogUseCase
-  implements ICommandHandler<BindWithUserBlogCommand>
-{
+@CommandHandler(BanBlogCommand)
+export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
   constructor(
     private readonly blogRepository: BlogRepository,
     private readonly userRepository: UserRepository,
   ) {}
-  // Обновление блогера
-  async execute(command: BindWithUserBlogCommand): Promise<{
+  // Бан блогера
+  async execute(command: BanBlogCommand): Promise<{
     statusCode: HttpStatus;
   }> {
-    const { userId, blogId } = command;
+    const { blogId, banBlogDto } = command;
+    // Валидируем DTO
+    await validateOrRejectModel(banBlogDto, BanBlogDto);
+    // Получаем поля из DTO
+    const { isBanned } = banBlogDto;
     // Ищем блогера
     const foundBlog = await this.blogRepository.findBlogById(blogId);
     // Если блогер не найден, возвращаем ошибку 404
     if (isEmpty(foundBlog)) {
       return { statusCode: HttpStatus.NOT_FOUND };
     }
-    // Ищем пользователя
-    const foundUser = await this.userRepository.findUserById(userId);
-    // Если пользователь не найден, возвращаем ошибку 403
-    if (isEmpty(foundUser)) {
-      return { statusCode: HttpStatus.FORBIDDEN };
-    }
-    // Привязываем пользователя к блогу
-    foundBlog.bindWithUser(foundUser.id, foundUser.accountData.login);
+    // Баним блог
+    foundBlog.banBlog(isBanned);
     // Сохраняем в базу
     await this.blogRepository.save(foundBlog);
     // Возвращаем статус 204

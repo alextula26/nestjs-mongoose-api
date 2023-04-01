@@ -4,21 +4,22 @@ import {
   Put,
   Query,
   Param,
-  BadRequestException,
   NotFoundException,
   ForbiddenException,
   HttpCode,
   HttpStatus,
   UseGuards,
+  Body,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
 import { AuthdBasicGuard } from '../../guards';
 import { ResponseViewModelDetail } from '../../types';
 
-import { BindWithUserBlogCommand } from './use-cases';
+import { BanBlogCommand, BindWithUserBlogCommand } from './use-cases';
 import { BlogQueryRepository } from './blog.query.repository';
-import { BlogViewModel, QueryBlogModel } from './types';
+import { BanBlogDto } from './dto';
+import { BlogViewAdminModel, QueryBlogModel } from './types';
 
 @UseGuards(AuthdBasicGuard)
 @Controller('api/sa/blogs')
@@ -39,7 +40,7 @@ export class SABlogController {
       sortBy,
       sortDirection,
     }: QueryBlogModel,
-  ): Promise<ResponseViewModelDetail<BlogViewModel>> {
+  ): Promise<ResponseViewModelDetail<BlogViewAdminModel>> {
     const allBlogsByUserId =
       await this.blogQueryRepository.findAllBlogsForAdmin({
         searchNameTerm,
@@ -62,17 +63,31 @@ export class SABlogController {
     const { statusCode } = await this.commandBus.execute(
       new BindWithUserBlogCommand(userId, blogId),
     );
-    // Если при обновлении блогера, он не был найден, возвращаем 404
+    // Если при привязки пользователя к блогу, блог не был найден, возвращаем 404
     if (statusCode === HttpStatus.NOT_FOUND) {
       throw new NotFoundException();
     }
-    // Если пользователь не найден, возвращаем ошибку 400
-    if (statusCode === HttpStatus.BAD_REQUEST) {
-      throw new BadRequestException();
-    }
-    // Проверяем принадлежит ли обновляемый комментарий пользователю
+    // Если пользователь не найден, возвращаем ошибку 403
     if (statusCode === HttpStatus.FORBIDDEN) {
       throw new ForbiddenException();
+    }
+    // Возвращаем статус 204
+    return true;
+  }
+  // Привязка пользователя к блогу
+  @Put(':blogId/ban/')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async banBlog(
+    @Param('blogId') blogId: string,
+    @Body() banBlogDto: BanBlogDto,
+  ): Promise<boolean> {
+    // Баним блогера
+    const { statusCode } = await this.commandBus.execute(
+      new BanBlogCommand(blogId, banBlogDto),
+    );
+    // Если при обновлении блогера, он не был найден, возвращаем 404
+    if (statusCode === HttpStatus.NOT_FOUND) {
+      throw new NotFoundException();
     }
     // Возвращаем статус 204
     return true;
