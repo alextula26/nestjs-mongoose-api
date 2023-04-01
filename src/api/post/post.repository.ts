@@ -50,4 +50,13 @@ export class PostRepository {
 
     return deletedCount === 1;
   }
+  // Бан постов блогера
+  async banPostsByBlogId(blogId: string, isBanned: boolean): Promise<boolean> {
+    const { modifiedCount } = await this.PostModel.updateMany(
+      { blogId },
+      { $set: { isBanned } },
+    );
+
+    return modifiedCount > 0;
+  }
 }

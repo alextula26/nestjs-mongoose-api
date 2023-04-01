@@ -42,7 +42,7 @@ export class BanUserUseCase implements ICommandHandler<BanUserCommand> {
     // Сохраняем в базу
     await this.userRepository.save(foundUserById);
     // Банним комментарии пользователя
-    await this.commentRepository.banUserComments(userId, isBanned);
+    await this.commentRepository.banCommentsByUserId(userId, isBanned);
     // Банним лайк статусы пользователя
     await this.likeStatusRepository.banUserLikeStatuses(userId, isBanned);
     // Удаляем все устройства пользователя

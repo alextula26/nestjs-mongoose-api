@@ -4,7 +4,7 @@ import { isEmpty } from 'lodash';
 
 import { validateOrRejectModel } from '../../../validate';
 
-import { UserRepository } from '../../user/user.repository';
+import { PostRepository } from '../../post/post.repository';
 
 import { BlogRepository } from '../blog.repository';
 import { BanBlogDto } from '../dto';
@@ -17,7 +17,7 @@ export class BanBlogCommand {
 export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
   constructor(
     private readonly blogRepository: BlogRepository,
-    private readonly userRepository: UserRepository,
+    private readonly postRepository: PostRepository,
   ) {}
   // Бан блогера
   async execute(command: BanBlogCommand): Promise<{
@@ -36,6 +36,8 @@ export class BanBlogUseCase implements ICommandHandler<BanBlogCommand> {
     }
     // Баним блог
     foundBlog.banBlog(isBanned);
+    // Банним посты блогера
+    await this.postRepository.banPostsByBlogId(blogId, isBanned);
     // Сохраняем в базу
     await this.blogRepository.save(foundBlog);
     // Возвращаем статус 204
