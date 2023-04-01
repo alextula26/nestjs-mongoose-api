@@ -51,7 +51,7 @@ export class BloggerController {
     private readonly commentQueryRepository: CommentQueryRepository,
   ) {}
   // Получение списка комментария по всем постам блогера
-  @Get()
+  @Get('comments')
   @HttpCode(HttpStatus.OK)
   async findCommentsByAllPosts(
     @Req() request: Request & { userId: string },
