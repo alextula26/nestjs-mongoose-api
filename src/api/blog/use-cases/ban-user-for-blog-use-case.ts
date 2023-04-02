@@ -34,7 +34,7 @@ export class BanUserForBlogUseCase
     const foundUser = await this.userRepository.findUserById(userId);
     // Если пользователь не найден, возвращаем ошибку 400
     if (isEmpty(foundUser)) {
-      return { statusCode: HttpStatus.FORBIDDEN };
+      return { statusCode: HttpStatus.NOT_FOUND };
     }
     // Получаем поля из DTO
     const { blogId, isBanned, banReason } = banUserDto;

@@ -292,8 +292,8 @@ export class BloggerController {
       throw new NotFoundException();
     }
     // Если пользователь не найден, возвращаем ошибку 403
-    if (statusCode === HttpStatus.FORBIDDEN) {
+    /*if (statusCode === HttpStatus.FORBIDDEN) {
       throw new ForbiddenException();
-    }
+    }*/
   }
 }
