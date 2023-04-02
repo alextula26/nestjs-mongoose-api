@@ -22,7 +22,7 @@ export class BanQueryRepository {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
 
-    const filter: any = { blogId };
+    const filter: any = { blogId, isBanned: true };
     const sort: any = {
       [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
     };
