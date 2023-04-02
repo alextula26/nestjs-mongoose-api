@@ -39,7 +39,7 @@ export class BanQueryRepository {
       .sort(sort)
       .skip(skip)
       .limit(size);
-    console.log('foundBanUserForBlog', foundBanUserForBlog);
+
     return this._getBlogsViewModelDetail({
       items: foundBanUserForBlog,
       totalCount,
