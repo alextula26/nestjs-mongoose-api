@@ -65,7 +65,7 @@ export class Ban implements BanEntity {
   banReason: string;
 
   // Бан блоггера
-  banUser(isBanned: boolean, banReason: string) {
+  banUserForBlog(isBanned: boolean, banReason: string) {
     // Устанавливаем флаг бана блогера
     this.isBanned = isBanned;
     // Обновляем причину бана
@@ -95,7 +95,9 @@ export type BanDocument = HydratedDocument<Ban>;
 export type BanModelType = Model<BanDocument> & BanStaticsType;
 export const BanSchema = SchemaFactory.createForClass(Ban);
 
-BanSchema.methods = {};
+BanSchema.methods = {
+  banUserForBlog: Ban.prototype.banUserForBlog,
+};
 
 BanSchema.statics = {
   make: Ban.make,

@@ -23,7 +23,7 @@ export class BanUserForBlogUseCase
     private readonly blogRepository: BlogRepository,
     private readonly userRepository: UserRepository,
   ) {}
-  // Создание блогера
+  // Бан пользователя для блога
   async execute(command: BanUserForBlogCommand): Promise<{
     statusCode: HttpStatus;
   }> {
@@ -66,7 +66,7 @@ export class BanUserForBlogUseCase
       await this.banRepository.save(madeBanUser);
     } else {
       // Обновляем статус бана пользователя
-      foundBanUser.banUser(isBanned, banReason);
+      foundBanUser.banUserForBlog(isBanned, banReason);
       await this.banRepository.save(foundBanUser);
     }
     // Возвращаем идентификатор созданного блогера и статус 204
