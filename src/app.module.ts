@@ -83,6 +83,7 @@ import { CommentRepository } from './api/comment/comment.repository';
 import { DeviceRepository } from './api/device/device.repository';
 import { SessionRepository } from './api/session/session.repository';
 import { LikeStatusRepository } from './api/likeStatus/likeStatus.repository';
+import { BanRepository } from './api/ban/ban.repository';
 
 import { UserQueryRepository } from './api/user/user.query.repository';
 import { BlogQueryRepository } from './api/blog/blog.query.repository';
@@ -90,7 +91,7 @@ import { PostQueryRepository } from './api/post/post.query.repository';
 import { CommentQueryRepository } from './api/comment/comment.query.repository';
 import { DeviceQueryRepository } from './api/device/device.query.repository';
 import { AuthQueryRepository } from './api/auth/auth.query.repository';
-import { BanQueryRepository } from './api/ban/bam.query.repository';
+import { BanQueryRepository } from './api/ban/ban.query.repository';
 
 import { EmailAdapter } from './adapters';
 import { EmailManager } from './managers';
@@ -162,7 +163,7 @@ const likeStatusSProviders = [
   UpdateLikeStatusCommentUseCase,
   UpdateLikeStatusPostUseCase,
 ];
-const banSProviders = [BanQueryRepository];
+const banSProviders = [BanRepository, BanQueryRepository];
 
 const adapters = [EmailManager, EmailAdapter];
 

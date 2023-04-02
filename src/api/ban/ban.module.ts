@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CqrsModule } from '@nestjs/cqrs';
 
-import { BanQueryRepository } from './bam.query.repository';
+import { BanRepository } from './ban.repository';
+import { BanQueryRepository } from './ban.query.repository';
 import { Ban, BanSchema } from './schemas/ban.schema';
 
 @Module({
@@ -10,6 +11,6 @@ import { Ban, BanSchema } from './schemas/ban.schema';
     MongooseModule.forFeature([{ name: Ban.name, schema: BanSchema }]),
     CqrsModule,
   ],
-  providers: [BanQueryRepository],
+  providers: [BanRepository, BanQueryRepository],
 })
 export class BanModule {}

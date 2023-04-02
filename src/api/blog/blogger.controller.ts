@@ -32,13 +32,14 @@ import { PostViewModel } from '../post/types';
 import { CommentQueryRepository } from '../comment/comment.query.repository';
 import { QueryCommentModel, CommentByPostViewModel } from '../comment/types';
 
-import { BanQueryRepository } from '../ban/bam.query.repository';
+import { BanQueryRepository } from '../ban/ban.query.repository';
 import { QueryVannedUserModel, BannedUserViewModel } from '../ban/types';
 
 import {
   CreateBlogCommand,
   DeleteBlogCommand,
   UpdateBlogCommand,
+  BanUserForBlogCommand,
 } from './use-cases';
 import { BlogQueryRepository } from './blog.query.repository';
 import { BanUserDto, CreateBlogDto, UpdateBlogDto } from './dto/blog.dto';
@@ -282,21 +283,17 @@ export class BloggerController {
     @Param('userId') userId: string,
     @Body() banUserDto: BanUserDto,
   ): Promise<void> {
-    // Обновляем пост
-    /*const { statusCode } = await this.commandBus.execute(
-      new UpdatePostCommand(request.userId, blogId, postId, updatePostDto),
+    // Обновляем бан пользователя для блога
+    const { statusCode } = await this.commandBus.execute(
+      new BanUserForBlogCommand(userId, banUserDto),
     );
-    // Если пост не найден, возвращаем ошибку 404
+    // Если блогер не найден, возвращаем ошибку 404
     if (statusCode === HttpStatus.NOT_FOUND) {
       throw new NotFoundException();
     }
-    // Если пользователь не найден, возвращаем ошибку 400
-    if (statusCode === HttpStatus.BAD_REQUEST) {
-      throw new BadRequestException();
-    }
-    // Проверяем принадлежит ли блогер обновляемого поста пользователю
+    // Если пользователь не найден, возвращаем ошибку 403
     if (statusCode === HttpStatus.FORBIDDEN) {
       throw new ForbiddenException();
-    }*/
+    }
   }
 }

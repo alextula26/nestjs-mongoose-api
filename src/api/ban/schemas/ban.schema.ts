@@ -64,29 +64,30 @@ export class Ban implements BanEntity {
   })
   banReason: string;
 
+  // Бан блоггера
+  banUser(isBanned: boolean, banReason: string) {
+    // Устанавливаем флаг бана блогера
+    this.isBanned = isBanned;
+    // Обновляем причину бана
+    this.banReason = isBanned ? banReason : null;
+    // Записываем дату бана блогера
+    this.banDate = isBanned ? new Date() : null;
+  }
+
   static async make(
-    {
-      blogId,
-      blogName,
-      userId,
-      userLogin,
-      isBanned,
-      banDate,
-      banReason,
-    }: MakeBanModel,
-    DeviceModel: BanModelType,
+    { blogId, blogName, userId, userLogin, isBanned, banReason }: MakeBanModel,
+    BanModel: BanModelType,
   ): Promise<BanDocument> {
-    const device = new BanEntity(
+    const ban = new BanEntity(
       blogId,
       blogName,
       userId,
       userLogin,
       isBanned,
-      banDate,
       banReason,
     );
 
-    return new DeviceModel(device);
+    return new BanModel(ban);
   }
 }
 
