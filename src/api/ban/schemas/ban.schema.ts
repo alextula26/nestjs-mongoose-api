@@ -64,6 +64,13 @@ export class Ban implements BanEntity {
   })
   banReason: string;
 
+  @Prop({
+    type: String,
+    required: [true, 'The createdAt field is required'],
+    trim: true,
+  })
+  createdAt: string;
+
   // Бан блоггера
   banUserForBlog(isBanned: boolean, banReason: string) {
     // Устанавливаем флаг бана блогера

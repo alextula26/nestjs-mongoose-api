@@ -2,6 +2,7 @@ import { getNextStrId } from '../../../utils';
 
 export class BanEntity {
   id: string;
+  createdAt: string;
   banDate: Date;
   constructor(
     public blogId: string,
@@ -13,5 +14,6 @@ export class BanEntity {
   ) {
     this.id = getNextStrId();
     this.banDate = new Date();
+    this.createdAt = new Date().toISOString();
   }
 }
