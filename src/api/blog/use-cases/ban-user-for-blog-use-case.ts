@@ -34,9 +34,7 @@ export class BanUserForBlogUseCase
     const foundUser = await this.userRepository.findUserById(userId);
     // Если пользователь не найден, возвращаем ошибку 400
     if (isEmpty(foundUser)) {
-      return {
-        statusCode: HttpStatus.FORBIDDEN,
-      };
+      return { statusCode: HttpStatus.FORBIDDEN };
     }
     // Получаем поля из DTO
     const { blogId, isBanned, banReason } = banUserDto;
@@ -47,18 +45,18 @@ export class BanUserForBlogUseCase
       return { statusCode: HttpStatus.NOT_FOUND };
     }
     // Ищем забаненного пользователя в базе
-    const foundBanUser = await this.banRepository.findBanUserById(
+    const foundBanUserForBlog = await this.banRepository.findBanUserById(
       userId,
       blogId,
     );
     // Если забаненного пользователя в базе нет, создаем его
-    if (!foundBanUser) {
+    if (!foundBanUserForBlog) {
       // Создаем документ забаненного пользователя
       const madeBanUser = await this.banRepository.createBanUser({
+        userId: foundUser.id,
+        login: foundUser.accountData.login,
         blogId: foundBlog.id,
         blogName: foundBlog.name,
-        userId: foundUser.id,
-        userLogin: foundUser.accountData.login,
         isBanned,
         banReason,
       });
@@ -66,12 +64,10 @@ export class BanUserForBlogUseCase
       await this.banRepository.save(madeBanUser);
     } else {
       // Обновляем статус бана пользователя
-      foundBanUser.banUserForBlog(isBanned, banReason);
-      await this.banRepository.save(foundBanUser);
+      foundBanUserForBlog.banUserForBlog(isBanned, banReason);
+      await this.banRepository.save(foundBanUserForBlog);
     }
     // Возвращаем идентификатор созданного блогера и статус 204
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-    };
+    return { statusCode: HttpStatus.NO_CONTENT };
   }
 }

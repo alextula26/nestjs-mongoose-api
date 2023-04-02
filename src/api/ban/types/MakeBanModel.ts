@@ -1,8 +1,8 @@
 export type MakeBanModel = {
+  userId: string;
+  login: string;
   blogId: string;
   blogName: string;
-  userId: string;
-  userLogin: string;
   isBanned: boolean;
   banReason: string;
 };

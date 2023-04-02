@@ -28,20 +28,20 @@ export class BanQueryRepository {
     };
 
     if (searchLoginTerm) {
-      filter.userLogin = { $regex: searchLoginTerm, $options: 'i' };
+      filter.login = { $regex: searchLoginTerm, $options: 'i' };
     }
 
     const totalCount = await this.BanModel.countDocuments(filter);
     const pagesCount = Math.ceil(totalCount / size);
     const skip = (number - 1) * size;
 
-    const blogs = await this.BanModel.find(filter)
+    const foundBanUserForBlog = await this.BanModel.find(filter)
       .sort(sort)
       .skip(skip)
       .limit(size);
-
+    console.log('foundBanUserForBlog', foundBanUserForBlog);
     return this._getBlogsViewModelDetail({
-      items: blogs,
+      items: foundBanUserForBlog,
       totalCount,
       pagesCount,
       page: number,
@@ -62,7 +62,7 @@ export class BanQueryRepository {
       totalCount,
       items: items.map((item) => ({
         id: item.id,
-        login: item.userLogin,
+        login: item.login,
         banInfo: {
           isBanned: item.isBanned,
           banDate: item.banDate,

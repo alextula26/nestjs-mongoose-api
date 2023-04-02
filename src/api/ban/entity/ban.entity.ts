@@ -5,10 +5,10 @@ export class BanEntity {
   createdAt: string;
   banDate: Date;
   constructor(
+    public userId: string,
+    public login: string,
     public blogId: string,
     public blogName: string,
-    public userId: string,
-    public userLogin: string,
     public isBanned: boolean,
     public banReason: string,
   ) {

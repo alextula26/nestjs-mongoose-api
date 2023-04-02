@@ -27,14 +27,14 @@ export class BanRepository {
   // Создание документа забаненного пользователя
   async createBanUser({
     userId,
-    userLogin,
+    login,
     blogId,
     blogName,
     isBanned,
     banReason,
   }: MakeBanModel): Promise<BanDocument> {
     const madeBan = this.BanModel.make(
-      { blogId, blogName, userId, userLogin, isBanned, banReason },
+      { userId, login, blogId, blogName, isBanned, banReason },
       this.BanModel,
     );
 

@@ -25,7 +25,7 @@ export class Ban implements BanEntity {
     maxLength: [10, 'The userLogin field must be no more than 10, got {VALUE}'],
     match: /^[a-zA-Z0-9_-]*$/,
   })
-  userLogin: string;
+  login: string;
 
   @Prop({
     type: String,
@@ -82,14 +82,14 @@ export class Ban implements BanEntity {
   }
 
   static async make(
-    { blogId, blogName, userId, userLogin, isBanned, banReason }: MakeBanModel,
+    { userId, login, blogId, blogName, isBanned, banReason }: MakeBanModel,
     BanModel: BanModelType,
   ): Promise<BanDocument> {
     const ban = new BanEntity(
+      userId,
+      login,
       blogId,
       blogName,
-      userId,
-      userLogin,
       isBanned,
       banReason,
     );
