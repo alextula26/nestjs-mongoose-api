@@ -265,6 +265,13 @@ export class BloggerController {
       sortDirection,
     }: QueryVannedUserModel,
   ): Promise<ResponseViewModelDetail<BannedUserViewModel>> {
+    // Проверяем существование блогера
+    const foundBlog = await this.blogQueryRepository.findBlogById(blogId);
+    // Если блогер не существует, возвращаем ошибку 404
+    if (!foundBlog) {
+      throw new NotFoundException();
+    }
+    // Ищем всех забаненных пользователь для конкретного блога
     const allBannedUsersForBlog =
       await this.banQueryRepository.findAllBannedUsersForBlog(blogId, {
         searchLoginTerm,
