@@ -40,6 +40,8 @@ export class BanQueryRepository {
       .skip(skip)
       .limit(size);
 
+    console.log('foundBanUserForBlog', foundBanUserForBlog);
+
     return this._getBlogsViewModelDetail({
       items: foundBanUserForBlog,
       totalCount,
@@ -61,7 +63,7 @@ export class BanQueryRepository {
       pageSize,
       totalCount,
       items: items.map((item) => ({
-        id: item.id,
+        id: item.userId,
         login: item.login,
         banInfo: {
           isBanned: item.isBanned,
