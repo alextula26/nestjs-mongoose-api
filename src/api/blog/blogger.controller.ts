@@ -41,6 +41,7 @@ import {
   UpdateBlogCommand,
   BanUserForBlogCommand,
 } from './use-cases';
+import { BlogService } from './blog.service';
 import { BlogQueryRepository } from './blog.query.repository';
 import { BanUserDto, CreateBlogDto, UpdateBlogDto } from './dto/blog.dto';
 import { BlogViewModel, QueryBlogModel } from './types';
@@ -50,6 +51,7 @@ import { BlogViewModel, QueryBlogModel } from './types';
 export class BloggerController {
   constructor(
     private readonly commandBus: CommandBus,
+    private readonly blogService: BlogService,
     private readonly blogQueryRepository: BlogQueryRepository,
     private readonly postQueryRepository: PostQueryRepository,
     private readonly commentQueryRepository: CommentQueryRepository,
@@ -255,6 +257,7 @@ export class BloggerController {
   @Get('users/blog/:blogId')
   @HttpCode(HttpStatus.OK)
   async findAllBannedUsersForBlog(
+    @Req() request: Request & { userId: string },
     @Param('blogId') blogId: string,
     @Query()
     {
@@ -266,10 +269,14 @@ export class BloggerController {
     }: QueryVannedUserModel,
   ): Promise<ResponseViewModelDetail<BannedUserViewModel>> {
     // Проверяем существование блогера
-    const foundBlog = await this.blogQueryRepository.findBlogById(blogId);
+    const foundBlog = await this.blogService.findBlogById(blogId);
     // Если блогер не существует, возвращаем ошибку 404
     if (!foundBlog) {
       throw new NotFoundException();
+    }
+    // Проверяем принадлежит ли блог пользователю
+    if (foundBlog.userId !== request.userId) {
+      throw new ForbiddenException();
     }
     // Ищем всех забаненных пользователь для конкретного блога
     const allBannedUsersForBlog =
