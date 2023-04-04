@@ -287,20 +287,22 @@ export class BloggerController {
   @Put('users/:userId/ban')
   @HttpCode(HttpStatus.NO_CONTENT)
   async banUserForBlog(
+    @Req() request: Request & { userId: string },
     @Param('userId') userId: string,
     @Body() banUserDto: BanUserDto,
   ): Promise<void> {
+    const authUserId = request.userId;
     // Обновляем бан пользователя для блога
     const { statusCode } = await this.commandBus.execute(
-      new BanUserForBlogCommand(userId, banUserDto),
+      new BanUserForBlogCommand(authUserId, userId, banUserDto),
     );
     // Если блогер не найден, возвращаем ошибку 404
     if (statusCode === HttpStatus.NOT_FOUND) {
       throw new NotFoundException();
     }
-    // Если пользователь не найден, возвращаем ошибку 403
-    /*if (statusCode === HttpStatus.FORBIDDEN) {
+    // Если блог не принадлежит авторизованному пользователю, возвращаем ошибку 403
+    if (statusCode === HttpStatus.FORBIDDEN) {
       throw new ForbiddenException();
-    }*/
+    }
   }
 }

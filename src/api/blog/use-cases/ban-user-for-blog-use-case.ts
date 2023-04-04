@@ -11,7 +11,11 @@ import { UserRepository } from '../../user/user.repository';
 import { BanUserDto } from '../dto/blog.dto';
 
 export class BanUserForBlogCommand {
-  constructor(public userId: string, public banUserDto: BanUserDto) {}
+  constructor(
+    public authUserId: string,
+    public userId: string,
+    public banUserDto: BanUserDto,
+  ) {}
 }
 
 @CommandHandler(BanUserForBlogCommand)
@@ -27,7 +31,7 @@ export class BanUserForBlogUseCase
   async execute(command: BanUserForBlogCommand): Promise<{
     statusCode: HttpStatus;
   }> {
-    const { userId, banUserDto } = command;
+    const { authUserId, userId, banUserDto } = command;
     // Валидируем DTO
     await validateOrRejectModel(banUserDto, BanUserDto);
     // Ищем пользователя
@@ -43,6 +47,10 @@ export class BanUserForBlogUseCase
     // Если блогер не найден, возвращаем ошибку 404
     if (isEmpty(foundBlog)) {
       return { statusCode: HttpStatus.NOT_FOUND };
+    }
+    // Проверяем принадлежит ли блог пользователю
+    if (foundBlog.userId !== authUserId) {
+      return { statusCode: HttpStatus.FORBIDDEN };
     }
     // Ищем забаненного пользователя в базе
     const foundBanUserForBlog = await this.banRepository.findBanUserById(
