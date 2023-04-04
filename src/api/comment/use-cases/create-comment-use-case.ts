@@ -6,6 +6,7 @@ import { validateOrRejectModel } from '../../../validate';
 
 import { PostRepository } from '../../post/post.repository';
 import { UserRepository } from '../../user/user.repository';
+import { BanRepository } from '../../ban/ban.repository';
 
 import { CreateCommentDto } from '../dto/comment.dto';
 import { CommentRepository } from '../comment.repository';
@@ -26,6 +27,7 @@ export class CreateCommentUseCase
     private readonly commentRepository: CommentRepository,
     private readonly postRepository: PostRepository,
     private readonly userRepository: UserRepository,
+    private readonly banRepository: BanRepository,
   ) {}
   // Создание комментария по идентификатору поста
   async execute(command: CreateCommentCommand): Promise<{
@@ -60,6 +62,23 @@ export class CreateCommentUseCase
         statusMessage: [
           {
             message: `UserId incorrect`,
+          },
+        ],
+      };
+    }
+    // Проверяем забанен ли пользователь, который оставляет комментарий
+    const findBanUserById = await this.banRepository.findBanUserById(
+      foundUser.id,
+      foundPost.blogId,
+    );
+    // Если пользователь забанен, возвращаем ошибку 403
+    if (findBanUserById) {
+      return {
+        commentId: null,
+        statusCode: HttpStatus.FORBIDDEN,
+        statusMessage: [
+          {
+            message: `UserId FORBIDDEN`,
           },
         ],
       };

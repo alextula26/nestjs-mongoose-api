@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 
@@ -137,11 +138,15 @@ export class PostController {
     if (statusCode === HttpStatus.NOT_FOUND) {
       throw new NotFoundException(statusMessage);
     }
-    // Если при создании комментария возникли ошибки возращаем статус ошибки 400
+    // Если при создании комментария возникли ошибки, возращаем статус ошибки 400
     if (statusCode === HttpStatus.BAD_REQUEST) {
       throw new BadRequestException(statusMessage);
     }
-
+    // Если при создании комментария пользователь не был найден или забанен,
+    // Возвращаем ошибку 403
+    if (statusCode === HttpStatus.FORBIDDEN) {
+      throw new ForbiddenException(statusMessage);
+    }
     // Порлучаем созданный комментарий в формате ответа пользователю
     const foundComment = await this.commentQueryRepository.findCommentById(
       commentId,
