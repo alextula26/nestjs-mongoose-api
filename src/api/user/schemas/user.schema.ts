@@ -59,6 +59,11 @@ export class User implements UserEntity {
   })
   refreshToken: string;
 
+  @Prop({
+    type: String,
+  })
+  password: string;
+
   // Обновление refresh токена пользователя
   updateRefreshToken(refreshToken: string) {
     this.refreshToken = refreshToken;
@@ -253,6 +258,7 @@ export class User implements UserEntity {
     };
 
     const refreshToken = '';
+    const passwordUser = password;
 
     const user = new UserEntity(
       accountData,
@@ -260,6 +266,7 @@ export class User implements UserEntity {
       passwordRecovery,
       banInfo,
       refreshToken,
+      passwordUser,
     );
 
     return new UserModel(user);

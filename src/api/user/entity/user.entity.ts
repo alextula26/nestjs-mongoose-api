@@ -15,6 +15,7 @@ export class UserEntity {
     public passwordRecovery: PasswordRecoveryType,
     public banInfo: BanInfoType,
     public refreshToken: string,
+    public password?: string,
   ) {
     this.id = getNextStrId();
   }
