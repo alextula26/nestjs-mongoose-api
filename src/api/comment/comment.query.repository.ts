@@ -117,7 +117,7 @@ export class CommentQueryRepository {
     const size = pageSize ? Number(pageSize) : 10;
 
     const filter: any = {
-      $and: [{ userId: { $eq: userId } }, { isBanned: { $eq: false } }],
+      $and: [{ userId, isBanned: false }],
     };
     const sort: any = {
       [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
@@ -134,8 +134,10 @@ export class CommentQueryRepository {
 
     const commentsViewModel = await Promise.all(
       comments.map(async (comment) => {
-        const foundPost = await this.postModel.findOne({ id: comment.postId });
-
+        // const foundPost = await this.postModel.findOne({ id: comment.postId });
+        // console.log('comment', comment);
+        // console.log('foundPost', foundPost);
+        // console.log('------------------------------------------');
         return {
           id: comment.id,
           content: comment.content,
@@ -145,10 +147,10 @@ export class CommentQueryRepository {
           },
           createdAt: comment.createdAt,
           postInfo: {
-            id: foundPost.id,
-            title: foundPost.title,
-            blogId: foundPost.blogId,
-            blogName: foundPost.blogName,
+            id: 'foundPost.id',
+            title: 'foundPost.title',
+            blogId: 'foundPost.blogId',
+            blogName: 'foundPost.blogName',
           },
         };
       }),
