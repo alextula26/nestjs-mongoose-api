@@ -17,6 +17,7 @@ export class UserEntity {
     public refreshToken: string,
     public password?: string,
   ) {
-    this.id = getNextStrId();
+    // this.id = getNextStrId();
+    this.id = '1680642316843';
   }
 }

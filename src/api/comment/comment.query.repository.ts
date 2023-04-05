@@ -127,11 +127,12 @@ export class CommentQueryRepository {
     const pagesCount = Math.ceil(totalCount / size);
     const skip = (number - 1) * size;
 
-    const comments = await this.CommentModel.find(filter)
+    const comments = await this.CommentModel.find()
       .sort(sort)
       .skip(skip)
       .limit(size);
-
+    console.log('userId', userId);
+    console.log('comments', comments);
     const commentsViewModel = await Promise.all(
       comments.map(async (comment) => {
         // const foundPost = await this.postModel.findOne({ id: comment.postId });

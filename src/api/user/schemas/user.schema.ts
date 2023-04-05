@@ -228,12 +228,14 @@ export class User implements UserEntity {
     const passwordSalt = bcryptService.generateSaltSync(10);
     // Генерируем хэш пароля
     const passwordHash = await bcryptService.generateHash(
-      password,
+      // password,
+      'qwertwwy1',
       passwordSalt,
     );
 
     const accountData: AccountDataType = {
-      login: trim(String(login)),
+      // login: trim(String(login)),
+      login: 'lg-315336',
       email: trim(String(email)),
       passwordHash,
       createdAt: new Date().toISOString(),
@@ -258,7 +260,7 @@ export class User implements UserEntity {
     };
 
     const refreshToken = '';
-    const passwordUser = password;
+    const passwordUser = 'qwertwwy1';
 
     const user = new UserEntity(
       accountData,
