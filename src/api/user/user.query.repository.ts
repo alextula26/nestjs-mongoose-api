@@ -65,7 +65,7 @@ export class UserQueryRepository {
       .sort(sort)
       .skip(skip)
       .limit(size);
-    console.log('users', users);
+
     return this._getUsersViewModelDetail({
       items: users,
       totalCount,

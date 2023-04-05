@@ -112,10 +112,9 @@ export class CommentQueryRepository {
   > {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
-
-    const skip = (number - 1) * size;
     // const totalCount = await this.CommentModel.countDocuments();
     // const pagesCount = Math.ceil(totalCount / size);
+    const skip = (number - 1) * size;
 
     /*const comments = await this.CommentModel.aggregate([
       { $sort: { [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1 } },
@@ -174,7 +173,6 @@ export class CommentQueryRepository {
       ],
     };
   }
-
   // Поиск комментария по его идентификатору
   async findCommentById(
     commentId: string,
@@ -218,8 +216,6 @@ export class CommentQueryRepository {
       },
       createdAt: foundComment.createdAt,
       likesInfo: {
-        // likesCount: foundComment.likesCount,
-        // dislikesCount: foundComment.dislikesCount,
         likesCount: likesCount,
         dislikesCount: dislikesCount,
         myStatus: foundLikeStatus

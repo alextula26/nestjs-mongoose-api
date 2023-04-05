@@ -57,23 +57,6 @@ export class BloggerController {
     private readonly commentQueryRepository: CommentQueryRepository,
     private readonly banQueryRepository: BanQueryRepository,
   ) {}
-  // Получение списка комментария по всем постам блогера
-  @Get('blogs/comments')
-  @HttpCode(HttpStatus.OK)
-  async findCommentsByAllPosts(
-    @Query()
-    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
-  ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
-    const allCommentsByUserId =
-      await this.commentQueryRepository.findCommentsByAllPosts({
-        pageNumber,
-        pageSize,
-        sortBy,
-        sortDirection,
-      });
-
-    return allCommentsByUserId;
-  }
   // Получение списка блогеров привязанных к пользователю
   @Get('blogs')
   @HttpCode(HttpStatus.OK)
@@ -98,6 +81,45 @@ export class BloggerController {
       });
 
     return allBlogsByUserId;
+  }
+  // Получение списка комментария по всем постам блогера
+  @Get('blogs/comments')
+  @HttpCode(HttpStatus.OK)
+  async findCommentsByAllPosts(
+    @Query()
+    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
+  ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
+    const commentsByAllPosts =
+      await this.commentQueryRepository.findCommentsByAllPosts({
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortDirection,
+      });
+
+    return {
+      pagesCount: 1,
+      totalCount: 10,
+      page: 1,
+      pageSize: 1,
+      items: [
+        {
+          id: '1',
+          content: '1',
+          createdAt: '1',
+          commentatorInfo: {
+            userId: '$userId',
+            userLogin: '$userLogin',
+          },
+          postInfo: {
+            id: '$post.id',
+            title: '$post.title',
+            blogId: '$post.blogId',
+            blogName: '$post.blogName',
+          },
+        },
+      ],
+    };
   }
   // Создание блогера
   @Post('blogs')
