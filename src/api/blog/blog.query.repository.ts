@@ -36,7 +36,7 @@ export class BlogQueryRepository {
       .sort(sort)
       .skip(skip)
       .limit(size);
-
+    console.log('blogs', blogs);
     return this._getBlogsViewModelDetail({
       items: blogs,
       totalCount,

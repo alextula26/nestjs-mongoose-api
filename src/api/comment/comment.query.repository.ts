@@ -123,7 +123,7 @@ export class CommentQueryRepository {
       [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
     };
 
-    const totalCount = await this.CommentModel.countDocuments(filter);
+    const totalCount = await this.postModel.countDocuments(filter);
     const pagesCount = Math.ceil(totalCount / size);
     const skip = (number - 1) * size;
 
