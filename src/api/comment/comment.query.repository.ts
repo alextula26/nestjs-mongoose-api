@@ -127,19 +127,19 @@ export class CommentQueryRepository {
     const pagesCount = Math.ceil(totalCount / size);
     const skip = (number - 1) * size;
 
-    const comments = await this.CommentModel.find()
+    const posts = await this.postModel
+      .find(filter)
       .sort(sort)
       .skip(skip)
       .limit(size);
-    console.log('userId', userId);
-    console.log('comments', comments);
-    const commentsViewModel = await Promise.all(
-      comments.map(async (comment) => {
-        // const foundPost = await this.postModel.findOne({ id: comment.postId });
-        // console.log('comment', comment);
-        // console.log('foundPost', foundPost);
-        // console.log('------------------------------------------');
-        return {
+
+    const postViewModel = await Promise.all(
+      posts.map(async (post) => {
+        const foundCommentsByPostId = await this.CommentModel.find({
+          postId: post.id,
+        });
+
+        const result = foundCommentsByPostId.map((comment) => ({
           id: comment.id,
           content: comment.content,
           commentatorInfo: {
@@ -148,12 +148,14 @@ export class CommentQueryRepository {
           },
           createdAt: comment.createdAt,
           postInfo: {
-            id: 'foundPost.id',
-            title: 'foundPost.title',
-            blogId: 'foundPost.blogId',
-            blogName: 'foundPost.blogName',
+            id: post.id,
+            title: post.title,
+            blogId: post.blogId,
+            blogName: post.blogName,
           },
-        };
+        }));
+
+        return result;
       }),
     );
 
@@ -162,7 +164,7 @@ export class CommentQueryRepository {
       totalCount,
       page: number,
       pageSize: size,
-      items: commentsViewModel,
+      items: postViewModel.reduce((acc, item) => [...acc, ...item], []),
     };
   }
 

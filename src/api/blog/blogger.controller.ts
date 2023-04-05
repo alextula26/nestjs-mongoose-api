@@ -64,8 +64,7 @@ export class BloggerController {
     @Req() request: Request & { userId: string },
     @Query()
     { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
-  ): // ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
-  Promise<any> {
+  ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
     const allCommentsByUserId =
       await this.commentQueryRepository.findCommentsByAllPosts(request.userId, {
         pageNumber,
@@ -74,7 +73,7 @@ export class BloggerController {
         sortDirection,
       });
 
-    return [];
+    return allCommentsByUserId;
   }
   // Получение списка блогеров привязанных к пользователю
   @Get('blogs')

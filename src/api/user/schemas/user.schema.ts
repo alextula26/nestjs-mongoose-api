@@ -59,11 +59,6 @@ export class User implements UserEntity {
   })
   refreshToken: string;
 
-  @Prop({
-    type: String,
-  })
-  password: string;
-
   // Обновление refresh токена пользователя
   updateRefreshToken(refreshToken: string) {
     this.refreshToken = refreshToken;
@@ -228,14 +223,12 @@ export class User implements UserEntity {
     const passwordSalt = bcryptService.generateSaltSync(10);
     // Генерируем хэш пароля
     const passwordHash = await bcryptService.generateHash(
-      // password,
-      'qwertwwy1',
+      password,
       passwordSalt,
     );
 
     const accountData: AccountDataType = {
-      // login: trim(String(login)),
-      login: 'lg-315336',
+      login: trim(String(login)),
       email: trim(String(email)),
       passwordHash,
       createdAt: new Date().toISOString(),
@@ -260,7 +253,6 @@ export class User implements UserEntity {
     };
 
     const refreshToken = '';
-    const passwordUser = 'qwertwwy1';
 
     const user = new UserEntity(
       accountData,
@@ -268,7 +260,6 @@ export class User implements UserEntity {
       passwordRecovery,
       banInfo,
       refreshToken,
-      passwordUser,
     );
 
     return new UserModel(user);
