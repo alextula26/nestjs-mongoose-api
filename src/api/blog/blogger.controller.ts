@@ -89,13 +89,13 @@ export class BloggerController {
     @Query()
     { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
   ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
-    const commentsByAllPosts =
+    /*const commentsByAllPosts =
       await this.commentQueryRepository.findCommentsByAllPosts({
         pageNumber,
         pageSize,
         sortBy,
         sortDirection,
-      });
+      });*/
 
     return {
       pagesCount: 1,
