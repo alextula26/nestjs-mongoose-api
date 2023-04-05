@@ -104,67 +104,60 @@ export class CommentQueryRepository {
       items: commentsViewModel,
     };
   }
-  async findCommentsByAllPosts(
-    userId: string,
-    {
-      pageNumber,
-      pageSize,
-      sortBy = 'createdAt',
-      sortDirection = SortDirection.DESC,
-    }: QueryCommentModel,
-  ): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
+  async findCommentsByAllPosts({
+    pageNumber,
+    pageSize,
+    sortBy = 'createdAt',
+    sortDirection = SortDirection.DESC,
+  }: QueryCommentModel): Promise<
+    ResponseViewModelDetail<CommentByPostViewModel>
+  > {
     const number = pageNumber ? Number(pageNumber) : 1;
     const size = pageSize ? Number(pageSize) : 10;
 
-    const filter: any = {
-      $and: [{ userId, isBanned: false }],
-    };
-    const sort: any = {
-      [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1,
-    };
-
-    const totalCount = await this.postModel.countDocuments(filter);
-    const pagesCount = Math.ceil(totalCount / size);
     const skip = (number - 1) * size;
+    const totalCount = await this.CommentModel.countDocuments();
+    const pagesCount = Math.ceil(totalCount / size);
 
-    const posts = await this.postModel
-      .find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(size);
-
-    const postViewModel = await Promise.all(
-      posts.map(async (post) => {
-        const foundCommentsByPostId = await this.CommentModel.find({
-          postId: post.id,
-        });
-
-        const result = foundCommentsByPostId.map((comment) => ({
-          id: comment.id,
-          content: comment.content,
+    const comments = await this.CommentModel.aggregate([
+      { $sort: { [sortBy]: sortDirection === SortDirection.ASC ? 1 : -1 } },
+      { $skip: skip },
+      { $limit: size },
+      {
+        $lookup: {
+          from: 'posts',
+          localField: 'postId',
+          foreignField: 'id',
+          as: 'post',
+        },
+      },
+      { $unwind: '$post' },
+      {
+        $project: {
+          _id: 0,
+          id: 1,
+          content: 1,
+          createdAt: 1,
           commentatorInfo: {
-            userId: comment.userId,
-            userLogin: comment.userLogin,
+            userId: '$userId',
+            userLogin: '$userLogin',
           },
-          createdAt: comment.createdAt,
           postInfo: {
-            id: post.id,
-            title: post.title,
-            blogId: post.blogId,
-            blogName: post.blogName,
+            id: '$post.id',
+            title: '$post.title',
+            blogId: '$post.blogId',
+            blogName: '$post.blogName',
           },
-        }));
-
-        return result;
-      }),
-    );
+        },
+      },
+    ]);
 
     return {
       pagesCount,
       totalCount,
       page: number,
       pageSize: size,
-      items: postViewModel.reduce((acc, item) => [...acc, ...item], []),
+      items: comments,
     };
   }
 
