@@ -82,6 +82,39 @@ export class BloggerController {
 
     return allBlogsByUserId;
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('blogs/comments')
+  async findCommentsByAllPosts(
+    @Query()
+    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
+  //): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
+  ): Promise<any> {
+    /*const commentsByAllPosts =
+        await this.commentQueryRepository.findCommentsByAllPosts({
+          pageNumber,
+          pageSize,
+          sortBy,
+          sortDirection,
+        });*/
+
+    return {
+      id: '1',
+      content: '1',
+      createdAt: '1',
+      commentatorInfo: {
+        userId: '$userId',
+        userLogin: '$userLogin',
+      },
+      postInfo: {
+        id: '$post.id',
+        title: '$post.title',
+        blogId: '$post.blogId',
+        blogName: '$post.blogName',
+      },
+    };
+  }
+
   // Создание блогера
   @Post('blogs')
   @HttpCode(HttpStatus.CREATED)
@@ -295,35 +328,6 @@ export class BloggerController {
     }
   }
   // Получение списка комментария по всем постам блогера
-  @Get('blogs/comments')
-  @HttpCode(HttpStatus.OK)
-  async findCommentsByAllPosts(
-    @Query()
-    { pageNumber, pageSize, sortBy, sortDirection }: QueryCommentModel,
-  //): Promise<ResponseViewModelDetail<CommentByPostViewModel>> {
-  ): Promise<any> {
-    /*const commentsByAllPosts =
-        await this.commentQueryRepository.findCommentsByAllPosts({
-          pageNumber,
-          pageSize,
-          sortBy,
-          sortDirection,
-        });*/
-
-    return {
-      id: '1',
-      content: '1',
-      createdAt: '1',
-      commentatorInfo: {
-        userId: '$userId',
-        userLogin: '$userLogin',
-      },
-      postInfo: {
-        id: '$post.id',
-        title: '$post.title',
-        blogId: '$post.blogId',
-        blogName: '$post.blogName',
-      },
-    };
-  }
+  
+ 
 }
